@@ -25,6 +25,7 @@ import {
   useProcedures,
   useUser 
 } from '../hooks/useData';
+import { useClinicSettings } from '../hooks/useClinicSettings';
 
 import Dashboard from '../components/Dashboard';
 import StatCard from '../components/StatCard';
@@ -72,6 +73,7 @@ const MedicalClinicApp = () => {
   const { analytics } = useAnalytics();
   const { documents } = useDocuments();
   const { procedures } = useProcedures();
+  const { settings: clinicSettings } = useClinicSettings();
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -165,12 +167,22 @@ const MedicalClinicApp = () => {
               </button>
               
               <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 ${darkMode ? "bg-blue-600" : "bg-blue-600"} rounded-lg flex items-center justify-center`}>
-                  <Stethoscope className="w-5 h-5 text-white" />
-                </div>
+                {clinicSettings.logoUrl ? (
+                  <div className="w-8 h-8 rounded-lg overflow-hidden">
+                    <img 
+                      src={clinicSettings.logoUrl} 
+                      alt="Logo da Clínica" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className={`w-8 h-8 ${darkMode ? "bg-blue-600" : "bg-blue-600"} rounded-lg flex items-center justify-center`}>
+                    <Stethoscope className="w-5 h-5 text-white" />
+                  </div>
+                )}
                 <div>
                   <h1 className={`text-xl font-bold ${darkMode ? "text-gray-100" : "text-gray-900"}`}>
-                    MediClinic
+                    {clinicSettings.fantasyName || clinicSettings.name || "MediClinic"}
                   </h1>
                   <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
                     Sistema de Gestão Clínica
@@ -311,20 +323,54 @@ const MedicalClinicApp = () => {
             </nav>
 
             <div className={`p-4 ${darkMode ? "border-gray-700" : "border-gray-200"} border-t`}>
-              <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 ${darkMode ? "bg-blue-600/20" : "bg-blue-100"} rounded-full flex items-center justify-center`}>
-                  <span className={`${darkMode ? "text-blue-400" : "text-blue-600"} font-medium text-sm`}>
-                    AP
-                  </span>
+              <div className="space-y-3">
+                {/* Informações do Usuário */}
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 ${darkMode ? "bg-blue-600/20" : "bg-blue-100"} rounded-full flex items-center justify-center`}>
+                    <span className={`${darkMode ? "text-blue-400" : "text-blue-600"} font-medium text-sm`}>
+                      AP
+                    </span>
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
+                      {user?.name || "Dr. Ana Paula Silva"}
+                    </p>
+                    <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                      {user?.specialty || "Clínica Geral"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className={`text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
-                    {user?.name || "Dr. Ana Paula Silva"}
-                  </p>
-                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                    {user?.specialty || "Clínica Geral"}
-                  </p>
-                </div>
+                
+                {/* Informações da Clínica */}
+                {clinicSettings.name && (
+                  <div className={`pt-2 ${darkMode ? "border-gray-700" : "border-gray-200"} border-t`}>
+                    <div className="flex items-start space-x-3">
+                      {clinicSettings.logoUrl ? (
+                        <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0">
+                          <img 
+                            src={clinicSettings.logoUrl} 
+                            alt="Logo" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className={`w-6 h-6 ${darkMode ? "bg-gray-600" : "bg-gray-300"} rounded flex items-center justify-center flex-shrink-0`}>
+                          <Stethoscope className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} truncate`}>
+                          {clinicSettings.fantasyName || clinicSettings.name}
+                        </p>
+                        {clinicSettings.phone && (
+                          <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-500"} truncate`}>
+                            📞 {clinicSettings.phone}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
