@@ -309,6 +309,15 @@ const initialProcedures: Procedure[] = [
     duration: 0,
     price: 85,
     description: "Análise completa dos elementos sanguíneos"
+  },
+   {
+    id: 4,
+    name: "Hemograma Completo",
+    code: "0202020014",
+    category: "Laboratório",
+    duration: 0,
+    price: 130,
+    description: "Análise completa dos elementos sanguíneos + cultura"
   }
 ];
 

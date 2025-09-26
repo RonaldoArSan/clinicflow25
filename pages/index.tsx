@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUserContext } from '../hooks/useUserContext';
+import { useAI } from '../hooks/useAI';
 import LoginForm from '../components/LoginForm';
 import UserHeader from '../components/UserHeader';
+import AIChat from '../components/AIChat';
+import AIInsightsPanel from '../components/AIInsightsPanel';
 import { 
   Calendar, Users, MessageSquare, FileText, BarChart3, Settings, Plus, Search, Bell, 
   Menu, X, ChevronRight, MapPin, Phone, Mail, Clock, CheckCircle, AlertCircle, User, 
@@ -15,7 +18,7 @@ import {
   CheckCircle2, XCircle, Clock4, MoreHorizontal, ArrowRight, ArrowLeft, ChevronDown, 
   ChevronUp, RefreshCw, Upload, Download as DownloadIcon, Stethoscope, Pill, HeartPulse, 
   CalendarDays, Receipt, CreditCard, FileImage, Clipboard, UserCog, Package, Thermometer, 
-  Syringe, Badge, ShieldCheck, AlertOctagon, TrendingDown 
+  Syringe, Badge, ShieldCheck, AlertOctagon, TrendingDown, Brain 
 } from 'lucide-react';
 
 import { 
@@ -88,6 +91,7 @@ const AuthenticatedApp = () => {
   const [showFinancialReportModal, setShowFinancialReportModal] = useState(false);
 
   const { currentUser } = useUserContext();
+  const { trackUserAction } = useAI();
   const { user } = useUser();
   const { patients } = usePatients();
   const { appointments } = useAppointments();
@@ -108,6 +112,7 @@ const AuthenticatedApp = () => {
     { id: "team", label: "Equipe Médica", icon: UserCheck },
     { id: "financial", label: "Financeiro", icon: DollarSign },
     { id: "analytics", label: "Relatórios", icon: TrendingUp },
+    { id: "ai-insights", label: "Insights IA", icon: Brain },
     { id: "settings", label: "Configurações", icon: Settings }
   ];
 
@@ -239,6 +244,7 @@ const AuthenticatedApp = () => {
                     onClick={() => {
                       setCurrentView(item.id);
                       setSidebarOpen(false);
+                      trackUserAction('navigation', `view_${item.id}`, { viewName: item.label });
                     }}
                     className={`
                       w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors
@@ -324,10 +330,12 @@ const AuthenticatedApp = () => {
                   {currentView === "team" && "Equipe Médica"}
                   {currentView === "financial" && "Financeiro"}
                   {currentView === "analytics" && "Relatórios e Análises"}
+                  {currentView === "ai-insights" && "Insights e Análise da IA"}
                   {currentView === "settings" && "Configurações da Clínica"}
                 </h1>
                 <button 
                   onClick={() => {
+                    trackUserAction('create', `new_${currentView}`, { section: currentView });
                     if (currentView === "appointments") setShowNewAppointmentModal(true);
                     else if (currentView === "patients") setShowNewPatientModal(true);
                     else if (currentView === "team") setShowNewMemberModal(true);
@@ -350,6 +358,7 @@ const AuthenticatedApp = () => {
                     {currentView === "team" && "Novo Profissional"}
                     {currentView === "financial" && "Nova Transação"}
                     {currentView === "analytics" && "Novo Relatório"}
+                    {currentView === "ai-insights" && "Atualizar Insights"}
                     {currentView === "settings" && "Configurar"}
                   </span>
                 </button>
@@ -388,6 +397,10 @@ const AuthenticatedApp = () => {
                   darkMode={darkMode}
                   analytics={analytics}
                 />
+              )}
+
+              {currentView === "ai-insights" && (
+                <AIInsightsPanel />
               )}
 
               {currentView === "records" && (
@@ -1071,6 +1084,9 @@ const AuthenticatedApp = () => {
           </div>
         </form>
       </Modal>
+
+      {/* AI Chat Assistant - Disponível em todas as páginas */}
+      <AIChat darkMode={darkMode} />
     </div>
   );
 };
