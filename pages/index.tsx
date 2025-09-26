@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUserContext } from '../hooks/useUserContext';
 import { useAI } from '../hooks/useAI';
+import { useDarkMode } from '../hooks/useDarkMode';
 import LoginForm from '../components/LoginForm';
 import UserHeader from '../components/UserHeader';
 import { AIChat } from '../components/AIChat';
@@ -79,7 +80,6 @@ const AuthenticatedApp = () => {
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [selectedProcedure, setSelectedProcedure] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [showNewPatientModal, setShowNewPatientModal] = useState(false);
   const [showNewMemberModal, setShowNewMemberModal] = useState(false);
@@ -91,6 +91,7 @@ const AuthenticatedApp = () => {
   const [showFinancialReportModal, setShowFinancialReportModal] = useState(false);
 
   const { currentUser } = useUserContext();
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const { trackUserAction } = useAI();
   const { user } = useUser();
   const { patients } = usePatients();
@@ -185,7 +186,7 @@ const AuthenticatedApp = () => {
       {/* User Header */}
       <UserHeader 
         darkMode={darkMode} 
-        onToggleDarkMode={() => setDarkMode(!darkMode)}
+        onToggleDarkMode={toggleDarkMode}
       />
       
       {/* Mobile Menu Button */}
@@ -400,7 +401,7 @@ const AuthenticatedApp = () => {
               )}
 
               {currentView === "ai-insights" && (
-                <AIInsightsPanel />
+                <AIInsightsPanel darkMode={darkMode} />
               )}
 
               {currentView === "records" && (
@@ -471,7 +472,7 @@ const AuthenticatedApp = () => {
               {currentView === "settings" && (
                 <SettingsView 
                   darkMode={darkMode}
-                  setDarkMode={setDarkMode}
+                  setDarkMode={toggleDarkMode}
                 />
               )}
               
@@ -484,6 +485,7 @@ const AuthenticatedApp = () => {
                currentView !== "procedures" && 
                currentView !== "financial" && 
                currentView !== "analytics" && 
+               currentView !== "ai-insights" && 
                currentView !== "settings" && (
                 <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} p-6 rounded-lg shadow-sm border transition-colors`}>
                   <p className={`text-center py-12 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>

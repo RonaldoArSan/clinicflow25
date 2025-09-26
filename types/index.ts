@@ -9,7 +9,8 @@ export interface Patient {
   bloodType: string;
   allergies: string[];
   chronicConditions: string[];
-  healthPlan: string;
+  healthPlan: string; // Nome do convênio - mantido para compatibilidade
+  healthPlanId?: number; // ID do convênio na nova estrutura
   planNumber?: string;
   emergencyContact: {
     name: string;
@@ -34,7 +35,8 @@ export interface Appointment {
   status: string;
   symptoms?: string;
   observations?: string;
-  healthPlan: string;
+  healthPlan: string; // Nome do convênio - mantido para compatibilidade
+  healthPlanId?: number; // ID do convênio na nova estrutura
   value: number;
 }
 

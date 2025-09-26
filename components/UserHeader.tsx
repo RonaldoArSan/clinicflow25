@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { 
   User, 
   Settings, 
@@ -7,13 +8,17 @@ import {
   Shield, 
   Clock,
   Bell,
-  Search
+  Search,
+  SearchX
 } from 'lucide-react';
 import { useUserContext } from '../hooks/useUserContext';
 import { UserRole } from '../types/user';
 import { useClinicSettings } from '../hooks/useData';
 import UserProfile from './UserProfile';
 import UserSettings from './UserSettings';
+import SimpleNotificationDropdown from './SimpleNotificationDropdown';
+import SearchDropdown from './SearchDropdown';
+import type { SearchResult } from '@/hooks/useSearch';
 
 interface UserHeaderProps {
   darkMode?: boolean;
@@ -119,6 +124,12 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
     setIsDropdownOpen(false);
   };
 
+  const handleSearchResultSelect = (result: SearchResult) => {
+    console.log('Resultado selecionado:', result);
+    // Aqui você pode implementar navegação baseada no tipo de resultado
+    // Por exemplo: navegar para a página do paciente, consulta, etc.
+  };
+
   return (
     <div className={`
       flex items-center justify-between px-4 py-3 border-b h-16
@@ -159,16 +170,11 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
       {/* Informações do Usuário */}
       <div className="flex items-center space-x-3">
         {/* Busca */}
-        <div className="relative hidden md:block">
-          <Search className={`w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
-          <input
-            type="text"
-            placeholder="Buscar pacientes..."
-            className={`pl-9 pr-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 text-sm transition-colors ${
-              darkMode 
-                ? "bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400" 
-                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-            }`}
+        <div className="hidden md:block w-64">
+          <SearchDropdown
+            darkMode={darkMode}
+            placeholder="Buscar pacientes, consultas..."
+            onResultSelect={handleSearchResultSelect}
           />
         </div>
 
@@ -193,16 +199,24 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
           </button>
         )}
 
+        {/* Busca Avançada */}
+        <Link href="/search">
+          <button
+            className={`
+              p-2 rounded-lg transition-colors relative
+              ${darkMode 
+                ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }
+            `}
+            title="Busca Avançada"
+          >
+            <SearchX className="w-5 h-5" />
+          </button>
+        </Link>
+
         {/* Notificações */}
-        <button className={`
-          p-2 rounded-lg hover:bg-opacity-80 transition-colors relative
-          ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}
-        `}>
-          <Bell className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3 h-3 text-xs flex items-center justify-center">
-            3
-          </span>
-        </button>
+        <SimpleNotificationDropdown darkMode={darkMode} />
 
         {/* Dropdown do Usuário */}
         <div className="relative">

@@ -28,6 +28,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useClinicSettings } from '../hooks/useClinicSettings';
+import HealthPlanManagement from './HealthPlanManagement';
 
 interface SettingsViewProps {
   darkMode?: boolean;
@@ -126,6 +127,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ darkMode = false, setDarkMo
   const tabs = [
     { id: "clinic", label: "Dados da Clínica", icon: Building },
     { id: "logo", label: "Logo e Identidade", icon: FileImage },
+    { id: "healthplans", label: "Convênios", icon: CheckCircle },
     { id: "documents", label: "Configurações de Documentos", icon: FileText },
     { id: "system", label: "Sistema", icon: Settings },
     { id: "security", label: "Segurança", icon: Shield }
@@ -733,6 +735,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ darkMode = false, setDarkMo
             </div>
           </div>
         </div>
+      )}
+
+      {/* Health Plans Tab */}
+      {activeTab === "healthplans" && (
+        <HealthPlanManagement isDark={darkMode} />
       )}
 
       {/* Documents Configuration Tab */}

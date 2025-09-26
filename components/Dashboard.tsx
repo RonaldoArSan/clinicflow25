@@ -1,6 +1,7 @@
 import React from 'react';
-import { Users, Calendar, DollarSign, Star, User } from 'lucide-react';
+import { Users, Calendar, DollarSign, Star, User, Bell } from 'lucide-react';
 import StatCard from './StatCard';
+import { useSimpleNotifications } from '@/hooks/useSimpleNotifications';
 
 interface DashboardProps {
   darkMode?: boolean;
@@ -22,6 +23,16 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ darkMode = false, analytics, appointments, patients }) => {
+  const { createNotification } = useSimpleNotifications();
+
+  const testNotification = () => {
+    createNotification({
+      title: 'Nova Consulta Agendada',
+      message: `Consulta com Dr. Silva marcada para ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      type: 'appointment',
+      priority: 'normal'
+    });
+  };
   const getStatusColor = (status: string) => {
     if (darkMode) {
       switch (status) {
@@ -89,6 +100,11 @@ const Dashboard: React.FC<DashboardProps> = ({ darkMode = false, analytics, appo
           suffix="/5.0"
           darkMode={darkMode}
         />
+      </div>
+
+      {/* Botão de Teste de Notificação */}
+      <div className="flex justify-center">
+        
       </div>
 
       {/* Today's Appointments and Recent Patients */}

@@ -56,7 +56,7 @@ function PersonaSelector({
       </button>
 
       {isOpen && (
-        <div className={`absolute bottom-full right-0 mb-2 w-72 rounded-lg shadow-xl border z-50 backdrop-blur-sm ${
+        <div className={`absolute bottom-full right-0 mb-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg shadow-xl border z-50 backdrop-blur-sm ${
           darkMode ? 'bg-gray-800/95 border-gray-700' : 'bg-white/95 border-gray-200'
         }`}>
           <div className={`px-3 py-2.5 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -205,36 +205,20 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
   } = useAI();
 
   const [message, setMessage] = useState('');
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true); // Iniciado como minimizado
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
   const [chatPosition, setChatPosition] = useState(() => {
-    // Tentar carregar posição salva do localStorage
+    // Posição fixa abaixo de todos os links da sidebar, centralizado horizontalmente
     if (typeof window !== 'undefined') {
-      const savedPosition = localStorage.getItem('aiChatPosition');
-      if (savedPosition) {
-        try {
-          const parsed = JSON.parse(savedPosition);
-          // Verificar se a posição é válida (não está fora da tela ou em posição estranha)
-          if (parsed.y < 0 || parsed.y > window.innerHeight - 100 || parsed.x < 0 || parsed.x > window.innerWidth - 100) {
-            // Posição inválida, usar padrão
-            localStorage.removeItem('aiChatPosition');
-          } else {
-            return parsed;
-          }
-        } catch (e) {
-          console.warn('Erro ao carregar posição salva do chat IA:', e);
-          localStorage.removeItem('aiChatPosition');
-        }
-      }
-      
-      // Posição inicial baseada na prop position se não houver posição salva
-      return position === 'bottom-left' 
-        ? { x: 16, y: window.innerHeight - 480 }  // Esquerda inferior (480 = 448 + 32)
-        : { x: window.innerWidth - 400, y: window.innerHeight - 480 }; // Direita inferior
+      // Sidebar tem 256px de largura (w-64), ícone tem 48px (3rem)
+      // Centralizar: (256 - 48) / 2 = 104px do lado esquerdo da sidebar
+      // Posição vertical: abaixo de todos os links + margem (500px)
+      return { x: 104, y: 500 };
     }
-    return { x: 16, y: 100 };
+    return { x: 104, y: 500 };
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -267,7 +251,7 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
 
   // Funcionalidade de drag and drop
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (isFullscreen) return; // Não permitir drag em tela cheia
+    if (isFullscreen) return; // Não permitir drag apenas em tela cheia
     
     setIsDragging(true);
     const rect = chatRef.current?.getBoundingClientRect();
@@ -279,18 +263,25 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
     }
   }, [isFullscreen]);
 
-  const handleDoubleClick = useCallback(() => {
-    if (isFullscreen || typeof window === 'undefined') return;
+  // Quando minimizado, manter centralizado horizontalmente abaixo dos links da sidebar
+  // Quando expandido, mover para uma posição mais central
+  const updateChatPosition = useCallback(() => {
+    if (typeof window === 'undefined') return;
     
-    // Reset para posição padrão
-    const defaultPosition = position === 'bottom-left' 
-      ? { x: 16, y: window.innerHeight - 480 }
-      : { x: window.innerWidth - 400, y: window.innerHeight - 480 };
-    
-    setChatPosition(defaultPosition);
-    localStorage.setItem('aiChatPosition', JSON.stringify(defaultPosition));
-    console.log('Posição resetada para:', defaultPosition);
-  }, [isFullscreen, position]);
+    if (isMinimized) {
+      // Posição fixa centralizada horizontalmente abaixo de todos os links da sidebar
+      setChatPosition({ x: 104, y: 500 });
+    } else {
+      // Posição mais central quando expandido
+      const centerX = Math.max(20, (window.innerWidth - 384) / 2); // 384 = 24rem
+      const centerY = Math.max(50, (window.innerHeight - 448) / 2); // 448 = 28rem
+      setChatPosition({ x: centerX, y: centerY });
+    }
+  }, [isMinimized]);
+
+  useEffect(() => {
+    updateChatPosition();
+  }, [isMinimized, updateChatPosition]);
 
   // Função de emergência para corrigir chat perdido
   const emergencyReset = useCallback(() => {
@@ -308,6 +299,9 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
     const newX = e.clientX - dragOffset.x;
     const newY = e.clientY - dragOffset.y;
 
+    // Marcar que houve movimento
+    setHasDragged(true);
+
     // Limitar o movimento dentro da tela
     const maxX = window.innerWidth - chatRef.current.offsetWidth;
     const maxY = window.innerHeight - chatRef.current.offsetHeight;
@@ -324,6 +318,8 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
     if (typeof window !== 'undefined') {
       localStorage.setItem('aiChatPosition', JSON.stringify(chatPosition));
     }
+    // Reset hasDragged após um pequeno delay para evitar ativação do click
+    setTimeout(() => setHasDragged(false), 100);
   }, [chatPosition]);
 
   useEffect(() => {
@@ -391,8 +387,8 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
       position: 'fixed' as const,
       left: `${chatPosition.x}px`,
       top: `${chatPosition.y}px`,
-      width: isMinimized ? '3.5rem' : '24rem',
-      height: isMinimized ? '3.5rem' : '28rem'
+      width: isMinimized ? '3rem' : '24rem',
+      height: isMinimized ? '3rem' : '28rem'
     };
   };
 
@@ -409,34 +405,40 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
       }`}>
         {isMinimized ? (
           // Modo minimizado - apenas ícone da IA
-          <div 
-            className={`w-full h-full flex items-center justify-center cursor-move select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-            onMouseDown={handleMouseDown}
-            onDoubleClick={handleDoubleClick}
-            title="Clique para expandir • Arraste para mover"
+          <button
+            onClick={(e) => {
+              // Só expandir se não houve drag
+              if (!hasDragged) {
+                setIsMinimized(false);
+              }
+            }}
+            onMouseDown={(e) => {
+              // Permitir drag no ícone minimizado
+              e.stopPropagation();
+              setHasDragged(false); // Reset no início do drag
+              handleMouseDown(e);
+            }}
+            className={`w-full h-full flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 cursor-grab active:cursor-grabbing ${
+              darkMode 
+                ? 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/20' 
+                : 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20'
+            } ${isDragging ? 'scale-105' : ''}`}
+            title="Assistente IA - Clique para expandir • Arraste para mover"
           >
-            <button
-              onClick={() => setIsMinimized(false)}
-              className={`p-2 rounded-lg transition-colors ${
-                darkMode ? 'bg-blue-900/30 hover:bg-blue-900/50' : 'bg-blue-100 hover:bg-blue-200'
-              }`}
-            >
-              <Sparkles className={`w-5 h-5 ${
-                darkMode ? 'text-blue-400' : 'text-blue-600'
-              }`} />
-            </button>
-          </div>
+            <Sparkles className="w-4 h-4 text-white" />
+          </button>
         ) : (
           // Modo expandido - interface completa
           <>
             {/* Header */}
             <div 
-              className={`flex items-center justify-between px-4 py-3 border-b cursor-move select-none ${
+              className={`flex items-center justify-between px-4 py-3 border-b ${
+                isMinimized ? '' : 'cursor-move select-none'
+              } ${
                 darkMode ? 'border-gray-700' : 'border-gray-200'
               } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
               onMouseDown={handleMouseDown}
-              onDoubleClick={handleDoubleClick}
-              title="Arraste para mover • Clique duplo para resetar posição"
+              title={isMinimized ? "" : "Arraste para mover o chat"}
             >
               <div className="flex items-center space-x-3">
                 <div className={`p-2.5 rounded-lg ${
