@@ -37,7 +37,7 @@ export function LoginForm({ darkMode = false, onSuccess }: LoginFormProps) {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Tentar fazer login com as credenciais
-      const success = login(email, password);
+      const success = await login(email, password);
       
       if (success) {
         onSuccess?.();
