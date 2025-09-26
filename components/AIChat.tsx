@@ -138,9 +138,9 @@ function MessageBubble({
               : darkMode ? 'bg-gray-700' : 'bg-gray-200'
           }`}>
             {isUser ? (
-              <User className="w-4 h-4 text-white" />
+              <User className="w-3.5 h-3.5 text-white" />
             ) : (
-              <Bot className={`w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+              <Bot className={`w-3.5 h-3.5 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
             )}
           </div>
           
@@ -215,18 +215,26 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
       const savedPosition = localStorage.getItem('aiChatPosition');
       if (savedPosition) {
         try {
-          return JSON.parse(savedPosition);
+          const parsed = JSON.parse(savedPosition);
+          // Verificar se a posição é válida (não está fora da tela ou em posição estranha)
+          if (parsed.y < 0 || parsed.y > window.innerHeight - 100 || parsed.x < 0 || parsed.x > window.innerWidth - 100) {
+            // Posição inválida, usar padrão
+            localStorage.removeItem('aiChatPosition');
+          } else {
+            return parsed;
+          }
         } catch (e) {
           console.warn('Erro ao carregar posição salva do chat IA:', e);
+          localStorage.removeItem('aiChatPosition');
         }
       }
       
       // Posição inicial baseada na prop position se não houver posição salva
       return position === 'bottom-left' 
-        ? { x: 16, y: 16 }  // Esquerda inferior
-        : { x: window.innerWidth - 400, y: 16 }; // Direita inferior (400 = 384 + 16)
+        ? { x: 16, y: window.innerHeight - 480 }  // Esquerda inferior (480 = 448 + 32)
+        : { x: window.innerWidth - 400, y: window.innerHeight - 480 }; // Direita inferior
     }
-    return { x: 16, y: 16 };
+    return { x: 16, y: 100 };
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -235,6 +243,27 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isTyping]);
+
+  // Auto-correção de posição inválida
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isValidPosition = 
+        chatPosition.y >= 0 && 
+        chatPosition.y <= window.innerHeight - 100 &&
+        chatPosition.x >= 0 && 
+        chatPosition.x <= window.innerWidth - 100;
+
+      if (!isValidPosition) {
+        console.log('Corrigindo posição inválida do chat:', chatPosition);
+        const correctedPosition = position === 'bottom-left' 
+          ? { x: 16, y: window.innerHeight - 480 }
+          : { x: window.innerWidth - 400, y: window.innerHeight - 480 };
+        
+        setChatPosition(correctedPosition);
+        localStorage.setItem('aiChatPosition', JSON.stringify(correctedPosition));
+      }
+    }
+  }, []);
 
   // Funcionalidade de drag and drop
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -255,18 +284,29 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
     
     // Reset para posição padrão
     const defaultPosition = position === 'bottom-left' 
-      ? { x: 16, y: 16 }
-      : { x: window.innerWidth - 400, y: 16 };
+      ? { x: 16, y: window.innerHeight - 480 }
+      : { x: window.innerWidth - 400, y: window.innerHeight - 480 };
     
     setChatPosition(defaultPosition);
     localStorage.setItem('aiChatPosition', JSON.stringify(defaultPosition));
+    console.log('Posição resetada para:', defaultPosition);
   }, [isFullscreen, position]);
+
+  // Função de emergência para corrigir chat perdido
+  const emergencyReset = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const safePosition = { x: 50, y: 100 };
+      setChatPosition(safePosition);
+      localStorage.setItem('aiChatPosition', JSON.stringify(safePosition));
+      console.log('Reset de emergência executado:', safePosition);
+    }
+  }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !chatRef.current || isFullscreen) return;
 
     const newX = e.clientX - dragOffset.x;
-    const newY = window.innerHeight - (e.clientY - dragOffset.y) - chatRef.current.offsetHeight;
+    const newY = e.clientY - dragOffset.y;
 
     // Limitar o movimento dentro da tela
     const maxX = window.innerWidth - chatRef.current.offsetWidth;
@@ -350,9 +390,9 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
     return {
       position: 'fixed' as const,
       left: `${chatPosition.x}px`,
-      bottom: `${chatPosition.y}px`,
-      width: '24rem',
-      height: isMinimized ? '4rem' : '28rem'
+      top: `${chatPosition.y}px`,
+      width: isMinimized ? '3.5rem' : '24rem',
+      height: isMinimized ? '3.5rem' : '28rem'
     };
   };
 
@@ -367,84 +407,115 @@ export function AIChat({ darkMode = false, position = 'bottom-right', onClose }:
           ? 'bg-gray-800/95 border-gray-700' 
           : 'bg-white/95 border-gray-200'
       }`}>
-        {/* Header */}
-        <div 
-          className={`flex items-center justify-between px-4 py-3 border-b cursor-move select-none ${
-            darkMode ? 'border-gray-700' : 'border-gray-200'
-          } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-          onMouseDown={handleMouseDown}
-          onDoubleClick={handleDoubleClick}
-          title="Arraste para mover • Clique duplo para resetar posição"
-        >
-          <div className="flex items-center space-x-3">
-            <div className={`p-2.5 rounded-lg ${
-              darkMode ? 'bg-blue-900/30' : 'bg-blue-100'
-            }`}>
-              <Sparkles className={`w-4 h-4 ${
+        {isMinimized ? (
+          // Modo minimizado - apenas ícone da IA
+          <div 
+            className={`w-full h-full flex items-center justify-center cursor-move select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            onMouseDown={handleMouseDown}
+            onDoubleClick={handleDoubleClick}
+            title="Clique para expandir • Arraste para mover"
+          >
+            <button
+              onClick={() => setIsMinimized(false)}
+              className={`p-2 rounded-lg transition-colors ${
+                darkMode ? 'bg-blue-900/30 hover:bg-blue-900/50' : 'bg-blue-100 hover:bg-blue-200'
+              }`}
+            >
+              <Sparkles className={`w-5 h-5 ${
                 darkMode ? 'text-blue-400' : 'text-blue-600'
               }`} />
-            </div>
-            <div className="space-y-1">
-              <div>
-                <h3 className={`font-semibold text-sm ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  Assistente IA
-                </h3>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Online
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            {!isFullscreen && (
-              <div className={`p-1.5 rounded ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                <Move className="w-4 h-4" />
-              </div>
-            )}
-            
-            <PersonaSelector
-              currentPersona={currentPersona}
-              onSelectPersona={switchPersona}
-              darkMode={darkMode}
-            />
-            
-            <button
-              onClick={() => setIsMinimized(!isMinimized)}
-              className={`p-1.5 rounded transition-colors ${
-                darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-700'
-              }`}
-            >
-              {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
             </button>
-            
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className={`p-1.5 rounded transition-colors ${
-                darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-700'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-            </button>
-            
-            {onClose && (
-              <button
-                onClick={onClose}
-                className={`p-1.5 rounded transition-colors ${
-                  darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-700'
-                }`}
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
           </div>
-        </div>
-
-        {!isMinimized && (
+        ) : (
+          // Modo expandido - interface completa
           <>
+            {/* Header */}
+            <div 
+              className={`flex items-center justify-between px-4 py-3 border-b cursor-move select-none ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              onMouseDown={handleMouseDown}
+              onDoubleClick={handleDoubleClick}
+              title="Arraste para mover • Clique duplo para resetar posição"
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`p-2.5 rounded-lg ${
+                  darkMode ? 'bg-blue-900/30' : 'bg-blue-100'
+                }`}>
+                  <Sparkles className={`w-4 h-4 ${
+                    darkMode ? 'text-blue-400' : 'text-blue-600'
+                  }`} />
+                </div>
+                <div className="space-y-1">
+                  <div>
+                    <h3 className={`font-semibold text-sm ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                      Assistente IA
+                    </h3>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Online
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                {!isFullscreen && (
+                  <div className={`p-1.5 rounded ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <Move className="w-4 h-4" />
+                  </div>
+                )}
+                
+                <PersonaSelector
+                  currentPersona={currentPersona}
+                  onSelectPersona={switchPersona}
+                  darkMode={darkMode}
+                />
+                
+                <button
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className={`p-1.5 rounded transition-colors ${
+                    darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-700'
+                  }`}
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </button>
+                
+                <button
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className={`p-1.5 rounded transition-colors ${
+                    darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-700'
+                  }`}
+                  title="Tela cheia"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={emergencyReset}
+                  className={`p-1.5 rounded transition-colors ${
+                    darkMode ? 'hover:bg-red-700 text-red-400 hover:text-red-300' : 'hover:bg-red-100 text-red-600 hover:text-red-700'
+                  }`}
+                  title="Reset posição (emergência)"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                
+                {onClose && (
+                  <button
+                    onClick={onClose}
+                    className={`p-1.5 rounded transition-colors ${
+                      darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-700'
+                    }`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
               {chatMessages.length === 0 && (

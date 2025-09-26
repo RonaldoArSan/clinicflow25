@@ -12,6 +12,8 @@ import {
 import { useUserContext } from '../hooks/useUserContext';
 import { UserRole } from '../types/user';
 import { useClinicSettings } from '../hooks/useData';
+import UserProfile from './UserProfile';
+import UserSettings from './UserSettings';
 
 interface UserHeaderProps {
   darkMode?: boolean;
@@ -105,6 +107,8 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
   const { currentUser, logout } = useUserContext();
   const { clinicSettings } = useClinicSettings();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   if (!currentUser) {
     return null;
@@ -279,18 +283,30 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
 
               {/* Menu Items */}
               <div className="p-2">
-                <button className={`
-                  flex items-center space-x-3 w-full p-3 rounded-lg transition-colors text-left
-                  ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}
-                `}>
+                <button 
+                  onClick={() => {
+                    setShowProfile(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`
+                    flex items-center space-x-3 w-full p-3 rounded-lg transition-colors text-left
+                    ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}
+                  `}
+                >
                   <User className="w-4 h-4" />
                   <span>Meu Perfil</span>
                 </button>
                 
-                <button className={`
-                  flex items-center space-x-3 w-full p-3 rounded-lg transition-colors text-left
-                  ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}
-                `}>
+                <button 
+                  onClick={() => {
+                    setShowSettings(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`
+                    flex items-center space-x-3 w-full p-3 rounded-lg transition-colors text-left
+                    ${darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}
+                  `}
+                >
                   <Settings className="w-4 h-4" />
                   <span>Configurações</span>
                 </button>
@@ -321,6 +337,23 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
         <div 
           className="fixed inset-0 z-40" 
           onClick={() => setIsDropdownOpen(false)}
+        />
+      )}
+
+      {/* Modal do Perfil do Usuário */}
+      {showProfile && (
+        <UserProfile
+          darkMode={darkMode}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+
+      {/* Modal das Configurações */}
+      {showSettings && (
+        <UserSettings
+          darkMode={darkMode}
+          onClose={() => setShowSettings(false)}
+          onToggleDarkMode={onToggleDarkMode}
         />
       )}
     </div>

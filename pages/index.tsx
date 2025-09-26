@@ -5,7 +5,7 @@ import { useUserContext } from '../hooks/useUserContext';
 import { useAI } from '../hooks/useAI';
 import LoginForm from '../components/LoginForm';
 import UserHeader from '../components/UserHeader';
-import AIChat from '../components/AIChat';
+import { AIChat } from '../components/AIChat';
 import AIInsightsPanel from '../components/AIInsightsPanel';
 import { 
   Calendar, Users, MessageSquare, FileText, BarChart3, Settings, Plus, Search, Bell, 
