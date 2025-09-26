@@ -352,3 +352,22 @@ export const useProcedures = () => {
   const [procedures, setProcedures] = useState(initialProcedures);
   return { procedures, setProcedures };
 };
+
+// Configurações da clínica
+const initialClinicSettings = {
+  name: 'ClinicFlow25',
+  fantasyName: 'ClinicFlow25',
+  logo: null,
+  logoUrl: null,
+  address: 'Rua das Clínicas, 123 - Centro',
+  phone: '(11) 3333-4444',
+  email: 'contato@clinicflow25.com.br',
+  cnpj: '12.345.678/0001-90',
+  responsibleDoctor: 'Dr. Ana Paula Silva',
+  crmResponsible: 'CRM/SP 123456'
+};
+
+export const useClinicSettings = () => {
+  const [clinicSettings, setClinicSettings] = useState(initialClinicSettings);
+  return { clinicSettings, setClinicSettings };
+};

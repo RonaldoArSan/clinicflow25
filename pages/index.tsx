@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useUserContext } from '../hooks/useUserContext';
+import LoginForm from '../components/LoginForm';
+import UserHeader from '../components/UserHeader';
 import { 
   Calendar, Users, MessageSquare, FileText, BarChart3, Settings, Plus, Search, Bell, 
   Menu, X, ChevronRight, MapPin, Phone, Mail, Clock, CheckCircle, AlertCircle, User, 
@@ -25,7 +28,7 @@ import {
   useProcedures,
   useUser 
 } from '../hooks/useData';
-import { useClinicSettings } from '../hooks/useClinicSettings';
+import { useClinicSettings } from '../hooks/useData';
 
 import Dashboard from '../components/Dashboard';
 import StatCard from '../components/StatCard';
@@ -45,6 +48,25 @@ import Modal from '../components/Modal';
 import NewAppointmentForm from '../components/NewAppointmentForm';
 
 const MedicalClinicApp = () => {
+  const { currentUser, isLoading } = useUserContext();
+  
+  // Se não estiver autenticado, mostrar tela de login
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return <LoginForm />;
+  }
+
+  return <AuthenticatedApp />;
+};
+
+const AuthenticatedApp = () => {
   const [currentView, setCurrentView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
@@ -65,6 +87,7 @@ const MedicalClinicApp = () => {
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
   const [showFinancialReportModal, setShowFinancialReportModal] = useState(false);
 
+  const { currentUser } = useUserContext();
   const { user } = useUser();
   const { patients } = usePatients();
   const { appointments } = useAppointments();
@@ -73,7 +96,7 @@ const MedicalClinicApp = () => {
   const { analytics } = useAnalytics();
   const { documents } = useDocuments();
   const { procedures } = useProcedures();
-  const { settings: clinicSettings } = useClinicSettings();
+  const { clinicSettings } = useClinicSettings();
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -154,128 +177,38 @@ const MedicalClinicApp = () => {
 
   return (
     <div className={`min-h-screen transition-colors ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
-      {/* Header */}
-      <header className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} shadow-sm border-b transition-colors`}>
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`md:hidden p-2 ${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"} transition-colors`}
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              
-              <div className="flex items-center space-x-3">
-                {clinicSettings.logoUrl ? (
-                  <div className="w-8 h-8 rounded-lg overflow-hidden">
-                    <img 
-                      src={clinicSettings.logoUrl} 
-                      alt="Logo da Clínica" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className={`w-8 h-8 ${darkMode ? "bg-blue-600" : "bg-blue-600"} rounded-lg flex items-center justify-center`}>
-                    <Stethoscope className="w-5 h-5 text-white" />
-                  </div>
-                )}
-                <div>
-                  <h1 className={`text-xl font-bold ${darkMode ? "text-gray-100" : "text-gray-900"}`}>
-                    {clinicSettings.fantasyName || clinicSettings.name || "MediClinic"}
-                  </h1>
-                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                    Sistema de Gestão Clínica
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className={`w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
-                <input
-                  type="text"
-                  placeholder="Buscar pacientes..."
-                  className={`pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 transition-colors ${
-                    darkMode 
-                      ? "bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400" 
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  }`}
-                />
-              </div>
-
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-lg transition-colors ${
-                  darkMode ? "text-yellow-400 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-100"
-                }`}
-                title={darkMode ? "Modo Claro" : "Modo Escuro"}
-              >
-                {darkMode ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                )}
-              </button>
-
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={`p-2 ${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"} relative transition-colors`}
-                >
-                  <Bell className="w-6 h-6" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    4
-                  </span>
-                </button>
-                
-                {showNotifications && (
-                  <div className={`absolute right-0 mt-2 w-80 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} border rounded-lg shadow-lg z-50`}>
-                    <div className={`p-4 ${darkMode ? "border-gray-700" : "border-gray-200"} border-b`}>
-                      <h3 className={`font-medium ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
-                        Notificações
-                      </h3>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {/* Notification items */}
-                      <div className={`p-4 ${darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-50"} border-b transition-colors`}>
-                        <p className={`font-medium text-sm ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
-                          Consulta em 15 minutos
-                        </p>
-                        <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}>
-                          Maria Santos - Clínica Geral
-                        </p>
-                        <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-500"} mt-1`}>
-                          às 09:00
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 ${darkMode ? "bg-blue-600/20" : "bg-blue-100"} rounded-full flex items-center justify-center`}>
-                  <User className={`w-5 h-5 ${darkMode ? "text-blue-400" : "text-blue-600"}`} />
-                </div>
-                <div className="hidden md:block">
-                  <p className={`text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
-                    {user?.name || "Dr. Ana Paula Silva"}
-                  </p>
-                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                    {user?.crm || "CRM/SP 123456"}
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* User Header */}
+      <UserHeader 
+        darkMode={darkMode} 
+        onToggleDarkMode={() => setDarkMode(!darkMode)}
+      />
+      
+      {/* Mobile Menu Button */}
+      <div className="md:hidden px-4 py-2 flex justify-between items-center">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className={`p-2 ${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"} transition-colors`}
+        >
+          <Menu className="w-6 h-6" />
+          <span className="sr-only">Abrir menu</span>
+        </button>
+        
+        {/* Busca Mobile */}
+        <div className="flex-1 mx-4">
+          <div className="relative">
+            <Search className={`w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
+            <input
+              type="text"
+              placeholder="Buscar..."
+              className={`pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full text-sm transition-colors ${
+                darkMode 
+                  ? "bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400" 
+                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+              }`}
+            />
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="flex">
         {/* Sidebar */}
