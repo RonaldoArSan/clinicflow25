@@ -13,6 +13,7 @@ import {
   QrCode,
   Smartphone
 } from 'lucide-react';
+import QRCodeScannerModal from './QRCodeScannerModal';
 
 interface CheckinViewProps {
   darkMode: boolean;
@@ -30,6 +31,7 @@ const CheckinView: React.FC<CheckinViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [checkInMethod, setCheckInMethod] = useState<'search' | 'qr' | 'appointment'>('search');
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter(apt => 
@@ -46,6 +48,15 @@ const CheckinView: React.FC<CheckinViewProps> = ({
     onCheckIn(patient.id, appointment?.id);
     setSelectedPatient(null);
     setSearchTerm('');
+  };
+
+  const handleQRCodeScan = (qrData: string) => {
+    console.log('QR Code scanned:', qrData);
+    // TODO: Find patient by QR code and perform check-in
+    const mockPatient = patients[0]; // For demo purposes
+    if (mockPatient) {
+      handleCheckIn(mockPatient);
+    }
   };
 
   return (
@@ -274,7 +285,10 @@ const CheckinView: React.FC<CheckinViewProps> = ({
             <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
               Posicione o código QR do paciente na câmera
             </p>
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+            <button 
+              onClick={() => setShowQRScanner(true)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
               <Smartphone className="w-5 h-5 inline mr-2" />
               Abrir Scanner
             </button>
@@ -295,6 +309,14 @@ const CheckinView: React.FC<CheckinViewProps> = ({
           </p>
         </div>
       </div>
+
+      {/* QR Code Scanner Modal */}
+      <QRCodeScannerModal
+        isOpen={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        darkMode={darkMode}
+        onScan={handleQRCodeScan}
+      />
     </div>
   );
 };
