@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Users, 
   Calendar, 
@@ -12,6 +12,8 @@ import {
   Timer,
   Activity
 } from 'lucide-react';
+import NewAppointmentModal from './NewAppointmentModal';
+import NewPatientModal from './NewPatientModal';
 
 interface ReceptionDashboardProps {
   darkMode: boolean;
@@ -19,6 +21,8 @@ interface ReceptionDashboardProps {
   patients: any[];
   queue: any[];
   onNavigate: (view: string) => void;
+  onNewAppointment?: (appointmentData: any) => void;
+  onNewPatient?: (patientData: any) => void;
 }
 
 const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
@@ -26,12 +30,33 @@ const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
   appointments = [],
   patients = [],
   queue = [],
-  onNavigate
+  onNavigate,
+  onNewAppointment,
+  onNewPatient
 }) => {
+  const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
+  const [showNewPatientModal, setShowNewPatientModal] = useState(false);
+  
   const today = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter(apt => apt.date === today);
   const waitingPatients = queue.filter(p => p.status === 'waiting');
   const inServicePatients = queue.filter(p => p.status === 'in_service');
+
+  const handleNewAppointment = (appointmentData: any) => {
+    if (onNewAppointment) {
+      onNewAppointment(appointmentData);
+    }
+    console.log('New appointment created:', appointmentData);
+    // TODO: Show success notification
+  };
+
+  const handleNewPatient = (patientData: any) => {
+    if (onNewPatient) {
+      onNewPatient(patientData);
+    }
+    console.log('New patient created:', patientData);
+    // TODO: Show success notification
+  };
   
   // Métricas rápidas
   const metrics = [
@@ -208,7 +233,7 @@ const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
           </button>
           
           <button 
-            onClick={() => onNavigate('appointments')}
+            onClick={() => setShowNewAppointmentModal(true)}
             className={`${darkMode ? 'bg-green-900/30 hover:bg-green-900/50 text-green-400' : 'bg-green-100 hover:bg-green-200 text-green-700'} p-4 rounded-lg transition-colors text-center`}
           >
             <Plus className="w-6 h-6 mx-auto mb-2" />
@@ -216,7 +241,7 @@ const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
           </button>
           
           <button 
-            onClick={() => onNavigate('patients')}
+            onClick={() => setShowNewPatientModal(true)}
             className={`${darkMode ? 'bg-purple-900/30 hover:bg-purple-900/50 text-purple-400' : 'bg-purple-100 hover:bg-purple-200 text-purple-700'} p-4 rounded-lg transition-colors text-center`}
           >
             <Users className="w-6 h-6 mx-auto mb-2" />
@@ -281,6 +306,22 @@ const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modals */}
+      <NewAppointmentModal
+        isOpen={showNewAppointmentModal}
+        onClose={() => setShowNewAppointmentModal(false)}
+        darkMode={darkMode}
+        patients={patients}
+        onSubmit={handleNewAppointment}
+      />
+
+      <NewPatientModal
+        isOpen={showNewPatientModal}
+        onClose={() => setShowNewPatientModal(false)}
+        darkMode={darkMode}
+        onSubmit={handleNewPatient}
+      />
     </div>
   );
 };
