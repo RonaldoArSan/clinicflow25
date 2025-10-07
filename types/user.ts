@@ -1,5 +1,10 @@
 // Tipos de usuário para sistema médico
-export type UserRole = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'viewer';
+// Hierarquia simplificada conforme solicitação:
+// - admin: Acesso total ao Módulo Administração
+// - receptionist: Acesso ao Módulo Recepção
+// - financial: Acesso à parte Financeira do Módulo Administração
+// - medical_professional (doctor): Acesso ao Módulo Atendimento Médico
+export type UserRole = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'financial' | 'viewer';
 
 // Permissões específicas do sistema
 export type Permission = 
@@ -150,11 +155,22 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'appointments:create', 'appointments:read', 'appointments:update', 'appointments:delete',
     // Documentos: básicos
     'documents:create', 'documents:read', 'documents:update',
-    // Financeiro: básico
-    'financial:create', 'financial:read', 'financial:update',
     // Equipe: leitura
     'team:read',
     // Procedimentos: leitura
+    'procedures:read'
+  ],
+  
+  financial: [
+    // Acesso exclusivo à parte financeira do módulo administração
+    'financial:create', 'financial:read', 'financial:update', 'financial:delete',
+    // Relatórios financeiros
+    'analytics:read',
+    // Pacientes: apenas leitura para contexto financeiro
+    'patients:read',
+    // Consultas: apenas leitura para faturamento
+    'appointments:read',
+    // Procedimentos: leitura para faturamento
     'procedures:read'
   ],
   
@@ -174,12 +190,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 export const ROLE_DESCRIPTIONS: Record<UserRole, { title: string; description: string; icon: string }> = {
   admin: {
     title: 'Administrador',
-    description: 'Acesso total ao sistema, configurações e gestão de usuários',
+    description: 'Acesso total ao Módulo Administração',
     icon: '⚙️'
   },
   doctor: {
-    title: 'Médico',
-    description: 'Acesso completo a prontuários, prescrições e consultas médicas',
+    title: 'Médico/Profissional',
+    description: 'Acesso ao Módulo Atendimento - prontuários e procedimentos médicos',
     icon: '👨‍⚕️'
   },
   nurse: {
@@ -189,8 +205,13 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, { title: string; description: s
   },
   receptionist: {
     title: 'Recepcionista',
-    description: 'Agendamentos, cadastro de pacientes e gestão administrativa',
+    description: 'Acesso ao Módulo Recepção - agendamentos e cadastros',
     icon: '🏥'
+  },
+  financial: {
+    title: 'Financeiro',
+    description: 'Acesso à parte Financeira do Módulo Administração',
+    icon: '💰'
   },
   viewer: {
     title: 'Visualizador',
@@ -289,5 +310,48 @@ export const MOCK_USERS: User[] = [
         sms: false
       }
     }
+  },
+  {
+    id: '5',
+    name: 'Roberto Costa',
+    email: 'roberto.costa@clinica.com.br',
+    role: 'financial',
+    permissions: ROLE_PERMISSIONS.financial,
+    department: 'Financeiro',
+    phone: '(11) 99999-5555',
+    status: 'active',
+    isOnline: true,
+    lastLogin: '2025-09-26T08:15:00Z',
+    preferences: {
+      darkMode: false,
+      language: 'pt-BR',
+      notifications: {
+        email: true,
+        push: true,
+        sms: true
+      }
+    }
   }
 ];
+
+// Tipos de módulos do sistema
+export type ModuleType = 'reception' | 'medical' | 'administration';
+
+// Configuração de acesso aos módulos por role
+export const MODULE_ACCESS: Record<ModuleType, UserRole[]> = {
+  reception: ['admin', 'receptionist', 'nurse'],
+  medical: ['admin', 'doctor', 'nurse'],
+  administration: ['admin', 'financial']
+};
+
+// Helper function para verificar acesso ao módulo
+export function hasModuleAccess(role: UserRole, module: ModuleType): boolean {
+  return MODULE_ACCESS[module].includes(role);
+}
+
+// Helper function para obter módulos acessíveis por um role
+export function getAccessibleModules(role: UserRole): ModuleType[] {
+  return (Object.keys(MODULE_ACCESS) as ModuleType[]).filter(
+    module => MODULE_ACCESS[module].includes(role)
+  );
+}
