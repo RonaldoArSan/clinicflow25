@@ -33,6 +33,7 @@ import {
   useUser 
 } from '../hooks/useData';
 import { useClinicSettings } from '../hooks/useData';
+import { useReceptionData } from '../hooks/useReceptionData';
 
 import Dashboard from '../components/Dashboard';
 import StatCard from '../components/StatCard';
@@ -49,7 +50,16 @@ import TeamView from '../components/TeamView';
 import ProceduresView from '../components/ProceduresView';
 import FinancialView from '../components/FinancialView';
 import Modal from '../components/Modal';
+
+// Importar componentes de recepção dinamicamente
+import dynamic from 'next/dynamic';
+const ReceptionDashboard = dynamic(() => import('../components/reception/ReceptionDashboard'), { ssr: false });
+const CheckinView = dynamic(() => import('../components/reception/CheckinView'), { ssr: false });
+const QueueView = dynamic(() => import('../components/reception/QueueView'), { ssr: false });
+const ContactsView = dynamic(() => import('../components/reception/ContactsView'), { ssr: false });
+const Sidebar = dynamic(() => import('../components/navigation/Sidebar'), { ssr: false });
 import NewAppointmentForm from '../components/NewAppointmentForm';
+
 
 const MedicalClinicApp = () => {
   const { currentUser, isLoading } = useUserContext();
@@ -71,8 +81,13 @@ const MedicalClinicApp = () => {
 };
 
 const AuthenticatedApp = () => {
-  const [currentView, setCurrentView] = useState("dashboard");
+  const [currentView, setCurrentView] = useState(() => {
+    // Definir view inicial baseada na role do usuário
+    const { currentUser } = useUserContext();
+    return currentUser?.role === 'receptionist' ? 'reception-dashboard' : 'dashboard';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -90,6 +105,18 @@ const AuthenticatedApp = () => {
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
   const [showFinancialReportModal, setShowFinancialReportModal] = useState(false);
 
+  // Estados para recepção
+  const { 
+    queue, 
+    contacts, 
+    addToQueue, 
+    updateQueue, 
+    removeFromQueue,
+    addContact,
+    updateContact,
+    deleteContact
+  } = useReceptionData();
+
   const { currentUser } = useUserContext();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { trackUserAction } = useAI();
@@ -102,20 +129,6 @@ const AuthenticatedApp = () => {
   const { documents } = useDocuments();
   const { procedures } = useProcedures();
   const { clinicSettings } = useClinicSettings();
-
-  const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "appointments", label: "Agendamentos", icon: Calendar },
-    { id: "patients", label: "Pacientes", icon: Users },
-    { id: "records", label: "Prontuários", icon: Clipboard },
-    { id: "procedures", label: "Procedimentos", icon: Stethoscope },
-    { id: "documents", label: "Documentos", icon: FileText },
-    { id: "team", label: "Equipe Médica", icon: UserCheck },
-    { id: "financial", label: "Financeiro", icon: DollarSign },
-    { id: "analytics", label: "Relatórios", icon: TrendingUp },
-    { id: "ai-insights", label: "Insights IA", icon: Brain },
-    { id: "settings", label: "Configurações", icon: Settings }
-  ];
 
   const getPriorityColor = (priority: 'alta' | 'media' | 'baixa' | string) => {
     if (darkMode) {
@@ -218,103 +231,12 @@ const AuthenticatedApp = () => {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`
-          fixed inset-y-0 left-0 z-50 w-64 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg transform transition-all duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 md:static md:inset-0 md:z-0
-        `}>
-          <div className="flex flex-col h-full">
-            <div className={`flex items-center justify-between p-4 ${darkMode ? "border-gray-700" : "border-gray-200"} border-b md:hidden`}>
-              <span className={`text-lg font-semibold ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
-                Menu
-              </span>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className={`p-2 ${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"} transition-colors`}
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <nav className="flex-1 p-4 space-y-2">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setCurrentView(item.id);
-                      setSidebarOpen(false);
-                      trackUserAction('navigation', `view_${item.id}`, { viewName: item.label });
-                    }}
-                    className={`
-                      w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors
-                      ${currentView === item.id 
-                        ? darkMode ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-blue-700" 
-                        : darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100" : "text-gray-700 hover:bg-gray-100"
-                      }
-                    `}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            <div className={`p-4 ${darkMode ? "border-gray-700" : "border-gray-200"} border-t`}>
-              <div className="space-y-3">
-                {/* Informações do Usuário */}
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 ${darkMode ? "bg-blue-600/20" : "bg-blue-100"} rounded-full flex items-center justify-center`}>
-                    <span className={`${darkMode ? "text-blue-400" : "text-blue-600"} font-medium text-sm`}>
-                      AP
-                    </span>
-                  </div>
-                  <div>
-                    <p className={`text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-900"}`}>
-                      {user?.name || "Dr. Ana Paula Silva"}
-                    </p>
-                    <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                      {user?.specialty || "Clínica Geral"}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Informações da Clínica */}
-                {clinicSettings.name && (
-                  <div className={`pt-2 ${darkMode ? "border-gray-700" : "border-gray-200"} border-t`}>
-                    <div className="flex items-start space-x-3">
-                      {clinicSettings.logoUrl ? (
-                        <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0">
-                          <img 
-                            src={clinicSettings.logoUrl} 
-                            alt="Logo" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className={`w-6 h-6 ${darkMode ? "bg-gray-600" : "bg-gray-300"} rounded flex items-center justify-center flex-shrink-0`}>
-                          <Stethoscope className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} truncate`}>
-                          {clinicSettings.fantasyName || clinicSettings.name}
-                        </p>
-                        {clinicSettings.phone && (
-                          <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-500"} truncate`}>
-                            📞 {clinicSettings.phone}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </aside>
+        <Sidebar 
+          darkMode={darkMode}
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          collapsed={sidebarCollapsed}
+        />
 
         {/* Main Content */}
         <main className="flex-1 md:ml-0">
@@ -323,6 +245,10 @@ const AuthenticatedApp = () => {
               <div className="flex items-center justify-between">
                 <h1 className={`text-2xl font-bold ${darkMode ? "text-gray-100" : "text-gray-900"}`}>
                   {currentView === "dashboard" && "Dashboard Clínico"}
+                  {currentView === "reception-dashboard" && "Dashboard da Recepção"}
+                  {currentView === "checkin" && "Check-in de Pacientes"}
+                  {currentView === "queue" && "Fila de Atendimento"}
+                  {currentView === "contacts" && "Contatos"}
                   {currentView === "appointments" && "Agendamentos"}
                   {currentView === "patients" && "Pacientes"}
                   {currentView === "records" && "Prontuários Médicos"}
@@ -462,17 +388,60 @@ const AuthenticatedApp = () => {
                 />
               )}
 
-              {currentView === "analytics" && (
-                <AnalyticsView 
-                  darkMode={darkMode}
-                  analytics={analytics}
-                />
-              )}
-
               {currentView === "settings" && (
                 <SettingsView 
                   darkMode={darkMode}
                   setDarkMode={toggleDarkMode}
+                />
+              )}
+
+              {/* Views de Recepção */}
+              {currentView === "reception-dashboard" && (
+                <ReceptionDashboard 
+                  darkMode={darkMode}
+                  appointments={appointments}
+                  patients={patients}
+                  queue={queue}
+                  onNavigate={setCurrentView}
+                />
+              )}
+
+              {currentView === "checkin" && (
+                <CheckinView 
+                  darkMode={darkMode}
+                  appointments={appointments}
+                  patients={patients}
+                  onCheckIn={(patientId: string, appointmentId?: string) => {
+                    // Implementar lógica de check-in
+                    console.log('Check-in realizado:', { patientId, appointmentId });
+                  }}
+                />
+              )}
+
+              {currentView === "queue" && (
+                <QueueView 
+                  darkMode={darkMode}
+                  queue={queue}
+                  onUpdateQueue={updateQueue}
+                  onCallNext={(doctorId: string) => {
+                    console.log('Chamar próximo paciente para:', doctorId);
+                  }}
+                />
+              )}
+
+              {currentView === "contacts" && (
+                <ContactsView 
+                  darkMode={darkMode}
+                  contacts={contacts}
+                  onAddContact={addContact}
+                  onEditContact={updateContact}
+                  onDeleteContact={deleteContact}
+                  onCall={(phone: string) => {
+                    console.log('Ligando para:', phone);
+                  }}
+                  onSendMessage={(phone: string) => {
+                    console.log('Enviando mensagem para:', phone);
+                  }}
                 />
               )}
               
