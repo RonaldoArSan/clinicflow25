@@ -92,7 +92,7 @@ function AccessDenied({ reason, darkMode = false, className = '' }: AccessDenied
       
       <div className={`mt-8 px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
         <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Sistema de Gestão Clínica • ClinicFlow25
+          Sistema de Gestão Clínica • Cliniciflow
         </p>
       </div>
     </div>

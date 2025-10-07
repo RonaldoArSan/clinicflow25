@@ -76,7 +76,7 @@ export function LoginForm({ darkMode = false, onSuccess }: LoginFormProps) {
             mt-6 text-3xl font-bold
             ${darkMode ? 'text-gray-100' : 'text-gray-900'}
           `}>
-            ClinicFlow25
+            Cliniciflow
           </h2>
           <p className={`
             mt-2 text-sm

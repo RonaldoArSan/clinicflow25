@@ -59,7 +59,7 @@ export const useAI = (): AIContextType => {
       const welcomeMessage: ChatMessage = {
         id: `msg-welcome-${Date.now()}`,
         type: 'ai',
-        content: `Olá, ${currentUser.name.split(' ')[0]}! 👋\n\nSou ${currentPersona.name}, sua ${currentPersona.role}. Estou aqui para ajudar você a otimizar o uso do ClinicFlow25 e melhorar a eficiência da sua clínica.\n\n✨ **Posso ajudar com:**\n${currentPersona.capabilities.map(cap => `• ${cap}`).join('\n')}\n\nComo posso ajudá-lo hoje?`,
+        content: `Olá, ${currentUser.name.split(' ')[0]}! 👋\n\nSou ${currentPersona.name}, sua ${currentPersona.role}. Estou aqui para ajudar você a otimizar o uso do Cliniciflow e melhorar a eficiência da sua clínica.\n\n✨ **Posso ajudar com:**\n${currentPersona.capabilities.map(cap => `• ${cap}`).join('\n')}\n\nComo posso ajudá-lo hoje?`,
         timestamp: Date.now(),
         suggestions: [
           {

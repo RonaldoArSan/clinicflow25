@@ -49,6 +49,10 @@ import TeamView from '../components/TeamView';
 import ProceduresView from '../components/ProceduresView';
 import FinancialView from '../components/FinancialView';
 import Modal from '../components/Modal';
+
+// Módulos
+import ModuleNavigation, { ModuleType } from '../components/navigation/ModuleNavigation';
+import ReceptionModule from '../components/modules/reception/ReceptionModule';
 import NewAppointmentForm from '../components/NewAppointmentForm';
 
 const MedicalClinicApp = () => {
@@ -72,6 +76,7 @@ const MedicalClinicApp = () => {
 
 const AuthenticatedApp = () => {
   const [currentView, setCurrentView] = useState("dashboard");
+  const [currentModule, setCurrentModule] = useState<ModuleType>('reception');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -318,6 +323,13 @@ const AuthenticatedApp = () => {
 
         {/* Main Content */}
         <main className="flex-1 md:ml-0">
+          {/* Navegação Modular */}
+          <ModuleNavigation
+            currentModule={currentModule}
+            onModuleChange={setCurrentModule}
+            darkMode={darkMode}
+          />
+          
           <div className="p-6 max-w-7xl mx-auto">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -366,45 +378,71 @@ const AuthenticatedApp = () => {
               </div>
 
               {/* Dynamic Content */}
-              {currentView === "dashboard" && (
-                <Dashboard 
-                  darkMode={darkMode}
-                  analytics={analytics}
-                  appointments={appointments}
-                  patients={patients}
-                />
-              )}
-              
-              {currentView === "appointments" && (
-                <AppointmentsView 
+              {/* Renderização por Módulo */}
+              {currentModule === 'reception' && (
+                <ReceptionModule
                   darkMode={darkMode}
                   appointments={appointments}
-                  selectedAppointment={selectedAppointment}
-                  setSelectedAppointment={setSelectedAppointment}
-                />
-              )}
-              
-              {currentView === "patients" && (
-                <PatientsView 
-                  darkMode={darkMode}
                   patients={patients}
+                  documents={documents}
                   selectedPatient={selectedPatient}
                   setSelectedPatient={setSelectedPatient}
+                  selectedAppointment={selectedAppointment}
+                  setSelectedAppointment={setSelectedAppointment}
+                  selectedDocument={selectedDocument}
+                  setSelectedDocument={setSelectedDocument}
+                  showNewAppointmentModal={showNewAppointmentModal}
+                  setShowNewAppointmentModal={setShowNewAppointmentModal}
+                  showNewPatientModal={showNewPatientModal}
+                  setShowNewPatientModal={setShowNewPatientModal}
+                  showNewDocumentModal={showNewDocumentModal}
+                  setShowNewDocumentModal={setShowNewDocumentModal}
+                  showUploadDocumentModal={showUploadDocumentModal}
+                  setShowUploadDocumentModal={setShowUploadDocumentModal}
                 />
               )}
 
-              {currentView === "analytics" && (
-                <AnalyticsView 
-                  darkMode={darkMode}
-                  analytics={analytics}
-                />
-              )}
+              {currentModule !== 'reception' && (
+                <>
+                  {currentView === "dashboard" && (
+                    <Dashboard 
+                      darkMode={darkMode}
+                      analytics={analytics}
+                      appointments={appointments}
+                      patients={patients}
+                    />
+                  )}
+              
+                  {currentView === "appointments" && (
+                    <AppointmentsView 
+                      darkMode={darkMode}
+                      appointments={appointments}
+                      selectedAppointment={selectedAppointment}
+                      setSelectedAppointment={setSelectedAppointment}
+                    />
+                  )}
+                  
+                  {currentView === "patients" && (
+                    <PatientsView 
+                      darkMode={darkMode}
+                      patients={patients}
+                      selectedPatient={selectedPatient}
+                      setSelectedPatient={setSelectedPatient}
+                    />
+                  )}
 
-              {currentView === "ai-insights" && (
-                <AIInsightsPanel darkMode={darkMode} />
-              )}
+                  {currentView === "analytics" && (
+                    <AnalyticsView 
+                      darkMode={darkMode}
+                      analytics={analytics}
+                    />
+                  )}
 
-              {currentView === "records" && (
+                  {currentView === "ai-insights" && (
+                    <AIInsightsPanel darkMode={darkMode} />
+                  )}
+
+                  {currentView === "records" && (
                 <MedicalRecordsView 
                   darkMode={darkMode}
                   medicalRecords={medicalRecords}
@@ -492,6 +530,8 @@ const AuthenticatedApp = () => {
                     Conteúdo da seção "{currentView}" será implementado em breve.
                   </p>
                 </div>
+              )}
+              </>
               )}
             </div>
           </div>

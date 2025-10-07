@@ -2,7 +2,7 @@
 
 ## 📋 **Resumo Executivo**
 
-O sistema de gerenciamento de convênios foi implementado como uma solução completa para cadastrar, gerenciar e integrar empresas de planos de saúde na aplicação ClinicFlow25. Este documento analisa onde e como as informações dos convênios são utilizadas em toda a aplicação.
+O sistema de gerenciamento de convênios foi implementado como uma solução completa para cadastrar, gerenciar e integrar empresas de planos de saúde na aplicação Cliniciflow. Este documento analisa onde e como as informações dos convênios são utilizadas em toda a aplicação.
 
 ---
 

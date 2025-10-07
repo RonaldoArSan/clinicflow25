@@ -156,9 +156,9 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
         )}
         <div className="hidden sm:block">
           <h1 className={`text-base font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            {(clinicSettings.fantasyName || clinicSettings.name || 'ClinicFlow25').length > 20 
-              ? (clinicSettings.fantasyName || clinicSettings.name || 'ClinicFlow25').substring(0, 20) + '...'
-              : (clinicSettings.fantasyName || clinicSettings.name || 'ClinicFlow25')
+            {(clinicSettings.fantasyName || clinicSettings.name || 'Cliniciflow').length > 20 
+              ? (clinicSettings.fantasyName || clinicSettings.name || 'Cliniciflow').substring(0, 20) + '...'
+              : (clinicSettings.fantasyName || clinicSettings.name || 'Cliniciflow')
             }
           </h1>
           <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>

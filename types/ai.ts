@@ -1,4 +1,4 @@
-// Sistema de Análise de IA para ClinicFlow25
+// Sistema de Análise de IA para Cliniciflow
 export interface AIAnalysisData {
   userId: string;
   timestamp: number;

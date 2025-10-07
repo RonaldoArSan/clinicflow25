@@ -117,7 +117,7 @@ Sistema completo de gestão de clínicas médicas desenvolvido em **Next.js 14**
 ## 📂 Estrutura do Projeto
 
 ```
-clinicflow25/
+Cliniciflow/
 ├── components/           # Componentes React reutilizáveis
 │   ├── Dashboard.tsx
 │   ├── AppointmentsView.tsx
@@ -158,7 +158,7 @@ clinicflow25/
 git clone [repo-url]
 
 # Navegar para o diretório
-cd clinicflow25
+cd Cliniciflow
 
 # Instalar dependências
 npm install

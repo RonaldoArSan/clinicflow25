@@ -152,7 +152,7 @@ O sistema **GereClínicas** foi completamente implementado com todas as funciona
 
 ## 🌐 Como Testar o Sistema
 
-1. **Acesse**: [http://localhost:3001](http://localhost:3001)
+1. **Acesse**: [http://localhost:3000](http://localhost:3000)
 2. **Navegue** pelas seções usando a sidebar
 3. **Teste a Equipe Médica**:
    - Clique em "Equipe Médica" na sidebar
