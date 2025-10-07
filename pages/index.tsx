@@ -61,6 +61,7 @@ const Sidebar = dynamic(() => import('../components/navigation/Sidebar'), { ssr:
 const PatientSearchModal = dynamic(() => import('../components/reception/PatientSearchModal'), { ssr: false });
 const NewContactModal = dynamic(() => import('../components/reception/NewContactModal'), { ssr: false });
 const ToastContainer = dynamic(() => import('../components/common/ToastContainer'), { ssr: false });
+const ConsultationView = dynamic(() => import('../components/ConsultationView'), { ssr: false });
 import NewAppointmentForm from '../components/NewAppointmentForm';
 
 
@@ -111,6 +112,9 @@ const AuthenticatedApp = () => {
   // Estados para modais de recepção
   const [showNewContactModal, setShowNewContactModal] = useState(false);
   const [showPatientSearchModal, setShowPatientSearchModal] = useState(false);
+  
+  // Estado para consulta ativa
+  const [activeConsultation, setActiveConsultation] = useState<{ appointment: any; patient: any } | null>(null);
 
   // Estados para recepção
   const { 
@@ -281,6 +285,7 @@ const AuthenticatedApp = () => {
                   {currentView === "queue" && "Fila de Atendimento"}
                   {currentView === "contacts" && "Contatos"}
                   {currentView === "appointments" && "Agendamentos"}
+                  {currentView === "consultation" && "Atendimento em Consulta"}
                   {currentView === "patients" && "Pacientes"}
                   {currentView === "records" && "Prontuários Médicos"}
                   {currentView === "procedures" && "Procedimentos e Exames"}
@@ -353,12 +358,64 @@ const AuthenticatedApp = () => {
                 />
               )}
               
-              {currentView === "appointments" && (
+              {currentView === "appointments" && !activeConsultation && (
                 <AppointmentsView 
                   darkMode={darkMode}
                   appointments={appointments}
                   selectedAppointment={selectedAppointment}
                   setSelectedAppointment={setSelectedAppointment}
+                  onStartConsultation={(appointment: any) => {
+                    const patient = patients.find((p: any) => p.id === appointment.patientId);
+                    setActiveConsultation({ appointment, patient });
+                    setCurrentView('consultation');
+                    showToast('info', 'Consulta Iniciada', `Iniciando atendimento de ${patient?.name}`);
+                  }}
+                />
+              )}
+
+              {currentView === "consultation" && activeConsultation && (
+                <ConsultationView 
+                  darkMode={darkMode}
+                  appointment={activeConsultation.appointment}
+                  patient={activeConsultation.patient}
+                  onSave={(data: any) => {
+                    console.log('Consulta salva:', data);
+                    showToast('success', 'Consulta Salva', 'Rascunho da consulta salvo com sucesso');
+                  }}
+                  onFinalize={(data: any) => {
+                    console.log('Consulta finalizada:', data);
+                    setActiveConsultation(null);
+                    setCurrentView('appointments');
+                    showToast('success', 'Consulta Finalizada', 'Consulta finalizada e registrada no prontuário');
+                  }}
+                  onCancel={() => {
+                    setActiveConsultation(null);
+                    setCurrentView('appointments');
+                    showToast('info', 'Consulta Cancelada', 'Atendimento cancelado');
+                  }}
+                />
+              )}
+
+              {currentView === "consultation" && activeConsultation && (
+                <ConsultationView 
+                  darkMode={darkMode}
+                  appointment={activeConsultation.appointment}
+                  patient={activeConsultation.patient}
+                  onSave={(data: any) => {
+                    console.log('Consulta salva:', data);
+                    showToast('success', 'Consulta Salva', 'Rascunho da consulta salvo com sucesso');
+                  }}
+                  onFinalize={(data: any) => {
+                    console.log('Consulta finalizada:', data);
+                    setActiveConsultation(null);
+                    setCurrentView('appointments');
+                    showToast('success', 'Consulta Finalizada', 'Consulta finalizada e registrada no prontuário');
+                  }}
+                  onCancel={() => {
+                    setActiveConsultation(null);
+                    setCurrentView('appointments');
+                    showToast('info', 'Consulta Cancelada', 'Atendimento cancelado');
+                  }}
                 />
               )}
               
