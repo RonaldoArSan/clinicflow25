@@ -58,6 +58,9 @@ const CheckinView = dynamic(() => import('../components/reception/CheckinView'),
 const QueueView = dynamic(() => import('../components/reception/QueueView'), { ssr: false });
 const ContactsView = dynamic(() => import('../components/reception/ContactsView'), { ssr: false });
 const Sidebar = dynamic(() => import('../components/navigation/Sidebar'), { ssr: false });
+const PatientSearchModal = dynamic(() => import('../components/reception/PatientSearchModal'), { ssr: false });
+const NewContactModal = dynamic(() => import('../components/reception/NewContactModal'), { ssr: false });
+const ToastContainer = dynamic(() => import('../components/common/ToastContainer'), { ssr: false });
 import NewAppointmentForm from '../components/NewAppointmentForm';
 
 
@@ -105,6 +108,10 @@ const AuthenticatedApp = () => {
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
   const [showFinancialReportModal, setShowFinancialReportModal] = useState(false);
 
+  // Estados para modais de recepção
+  const [showNewContactModal, setShowNewContactModal] = useState(false);
+  const [showPatientSearchModal, setShowPatientSearchModal] = useState(false);
+
   // Estados para recepção
   const { 
     queue, 
@@ -129,6 +136,13 @@ const AuthenticatedApp = () => {
   const { documents } = useDocuments();
   const { procedures } = useProcedures();
   const { clinicSettings } = useClinicSettings();
+
+  // Helper function para mostrar notificações
+  const showToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message?: string) => {
+    if ((window as any).showToast) {
+      (window as any).showToast({ type, title, message });
+    }
+  };
 
   const getPriorityColor = (priority: 'alta' | 'media' | 'baixa' | string) => {
     if (darkMode) {
@@ -229,6 +243,20 @@ const AuthenticatedApp = () => {
         </div>
       </div>
 
+      {/* Desktop Sidebar Toggle */}
+      <div className="hidden md:block px-4 py-2">
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className={`p-2 rounded-lg transition-colors ${
+            darkMode ? "text-gray-400 hover:text-gray-200 hover:bg-gray-800" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+          title={sidebarCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+        >
+          <Menu className="w-5 h-5" />
+          <span className="sr-only">{sidebarCollapsed ? "Expandir" : "Recolher"} sidebar</span>
+        </button>
+      </div>
+
       <div className="flex">
         {/* Sidebar */}
         <Sidebar 
@@ -236,10 +264,13 @@ const AuthenticatedApp = () => {
           currentView={currentView}
           onViewChange={setCurrentView}
           collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 
         {/* Main Content */}
-        <main className="flex-1 md:ml-0">
+        <main className={`flex-1 transition-all duration-300 ${
+          sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+        }`}>
           <div className="p-6 max-w-7xl mx-auto">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -270,13 +301,34 @@ const AuthenticatedApp = () => {
                     else if (currentView === "procedures") setShowNewProcedureModal(true);
                     else if (currentView === "documents") setShowNewDocumentModal(true);
                     else if (currentView === "financial") setShowNewTransactionModal(true);
-                    // Adicionar outros modais conforme necessário
+                    // Ações para recepção
+                    else if (currentView === "reception-dashboard") setCurrentView('checkin');
+                    else if (currentView === "checkin") setShowPatientSearchModal(true);
+                    else if (currentView === "queue") {
+                      // Chamar próximo paciente na fila
+                      const nextPatient = queue.find(item => item.status === 'waiting');
+                      if (nextPatient) {
+                        const updatedPatient = {
+                          ...nextPatient,
+                          status: 'in_service' as const
+                        };
+                        updateQueue(updatedPatient);
+                        showToast('success', 'Paciente Chamado', `${nextPatient.patientName} foi chamado para atendimento`);
+                      } else {
+                        showToast('info', 'Fila Vazia', 'Não há pacientes aguardando na fila');
+                      }
+                    }
+                    else if (currentView === "contacts") setShowNewContactModal(true);
                   }}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span>
                     {currentView === "dashboard" && "Relatório Mensal"}
+                    {currentView === "reception-dashboard" && "Novo Check-in"}
+                    {currentView === "checkin" && "Novo Paciente"}
+                    {currentView === "queue" && "Chamar Próximo"}
+                    {currentView === "contacts" && "Novo Contato"}
                     {currentView === "appointments" && "Nova Consulta"}
                     {currentView === "patients" && "Novo Paciente"}
                     {currentView === "records" && "Novo Prontuário"}
@@ -424,7 +476,24 @@ const AuthenticatedApp = () => {
                   queue={queue}
                   onUpdateQueue={updateQueue}
                   onCallNext={(doctorId: string) => {
-                    console.log('Chamar próximo paciente para:', doctorId);
+                    // Encontrar próximo paciente aguardando
+                    const nextPatient = queue.find(item => 
+                      item.status === 'waiting' && 
+                      (doctorId === 'all' || item.doctorName === doctorId)
+                    );
+                    
+                    if (nextPatient) {
+                      const updatedPatient = {
+                        ...nextPatient,
+                        status: 'in_service' as const,
+                        waitTime: Date.now() - new Date(nextPatient.checkInTime).getTime()
+                      };
+                      updateQueue(updatedPatient);
+                      
+                      showToast('success', 'Paciente Chamado', `${nextPatient.patientName} foi chamado para ${doctorId === 'all' ? 'atendimento' : doctorId}`);
+                    } else {
+                      showToast('info', 'Nenhum Paciente', 'Não há pacientes aguardando para este médico');
+                    }
                   }}
                 />
               )}
@@ -1056,8 +1125,36 @@ const AuthenticatedApp = () => {
         </form>
       </Modal>
 
+      {/* Modais de Recepção */}
+      <PatientSearchModal
+        darkMode={darkMode}
+        patients={patients}
+        isOpen={showPatientSearchModal}
+        onClose={() => setShowPatientSearchModal(false)}
+        onSelectPatient={(patient) => {
+          showToast('success', 'Check-in Realizado', `${patient.name} foi registrado na fila`);
+        }}
+        onCreateNew={() => {
+          setShowPatientSearchModal(false);
+          setShowNewPatientModal(true);
+        }}
+      />
+
+      <NewContactModal
+        darkMode={darkMode}
+        isOpen={showNewContactModal}
+        onClose={() => setShowNewContactModal(false)}
+        onSave={(contact) => {
+          addContact(contact);
+          showToast('success', 'Contato Adicionado', `${contact.name} foi adicionado aos contatos`);
+        }}
+      />
+
       {/* AI Chat Assistant - Disponível em todas as páginas */}
       <AIChat darkMode={darkMode} />
+      
+      {/* Toast Container para notificações */}
+      <ToastContainer darkMode={darkMode} />
     </div>
   );
 };

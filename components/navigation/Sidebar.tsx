@@ -14,7 +14,10 @@ import {
   Timer,
   Activity,
   Phone,
-  Star
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  Menu
 } from 'lucide-react';
 import { useUserContext } from '../../hooks/useUserContext';
 import { UserRole } from '../../types/user';
@@ -24,6 +27,7 @@ export interface SidebarProps {
   currentView: string;
   onViewChange: (view: string) => void;
   collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 // Definir itens de menu por role
@@ -53,7 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   darkMode,
   currentView,
   onViewChange,
-  collapsed = false
+  collapsed = false,
+  onToggleCollapse
 }) => {
   const { currentUser } = useUserContext();
   
@@ -78,11 +83,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     <aside className={`
       ${collapsed ? 'w-16' : 'w-64'} 
       ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} 
-      border-r transition-all duration-300 h-full overflow-y-auto
+      border-r transition-all duration-300 h-screen overflow-y-auto fixed left-0 top-0 z-30
     `}>
       <div className="flex flex-col h-full">
         {/* Header do sidebar */}
-        <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}>
+        <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b flex items-center justify-between`}>
           {!collapsed && (
             <div>
               <h2 className={`text-lg font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
@@ -96,6 +101,25 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {currentUser.role === 'viewer' && 'Visualização'}
               </p>
             </div>
+          )}
+          
+          {/* Botão para colapsar/expandir sidebar */}
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className={`p-2 rounded-lg transition-colors ${
+                darkMode 
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              }`}
+              title={collapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+            >
+              {collapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </button>
           )}
         </div>
 

@@ -18,6 +18,7 @@ import UserProfile from './UserProfile';
 import UserSettings from './UserSettings';
 import SimpleNotificationDropdown from './SimpleNotificationDropdown';
 import SearchDropdown from './SearchDropdown';
+import UserSwitcher from './common/UserSwitcher';
 import type { SearchResult } from '@/hooks/useSearch';
 
 interface UserHeaderProps {
@@ -217,6 +218,9 @@ export function UserHeader({ darkMode = false, className = '', onToggleDarkMode 
 
         {/* Notificações */}
         <SimpleNotificationDropdown darkMode={darkMode} />
+
+        {/* User Switcher para desenvolvimento */}
+        <UserSwitcher darkMode={darkMode} />
 
         {/* Dropdown do Usuário */}
         <div className="relative">
