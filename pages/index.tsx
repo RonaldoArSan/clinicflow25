@@ -35,6 +35,10 @@ import {
 import { useClinicSettings } from '../hooks/useData';
 
 import Dashboard from '../components/Dashboard';
+import ReceptionDashboard from '../components/ReceptionDashboard';
+import CheckInOut from '../components/CheckInOut';
+import WaitingQueue from '../components/WaitingQueue';
+import ReceptionContacts from '../components/ReceptionContacts';
 import StatCard from '../components/StatCard';
 import PatientCard from '../components/PatientCard';
 import AppointmentCard from '../components/AppointmentCard';
@@ -71,7 +75,9 @@ const MedicalClinicApp = () => {
 };
 
 const AuthenticatedApp = () => {
-  const [currentView, setCurrentView] = useState("dashboard");
+  const { currentUser } = useUserContext();
+  const isReceptionist = currentUser?.role === 'receptionist';
+  const [currentView, setCurrentView] = useState(isReceptionist ? "reception-dashboard" : "dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -90,7 +96,6 @@ const AuthenticatedApp = () => {
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
   const [showFinancialReportModal, setShowFinancialReportModal] = useState(false);
 
-  const { currentUser } = useUserContext();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { trackUserAction } = useAI();
   const { user } = useUser();
@@ -103,8 +108,18 @@ const AuthenticatedApp = () => {
   const { procedures } = useProcedures();
   const { clinicSettings } = useClinicSettings();
 
-  const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+  // Menu items based on user role
+  const menuItems = isReceptionist ? [
+    { id: "reception-dashboard", label: "Dashboard Recepção", icon: BarChart3 },
+    { id: "checkin", label: "Check-in/Check-out", icon: CheckCircle },
+    { id: "queue", label: "Fila de Espera", icon: Clock },
+    { id: "appointments", label: "Agendamentos", icon: Calendar },
+    { id: "patients", label: "Pacientes", icon: Users },
+    { id: "documents", label: "Documentos", icon: FileText },
+    { id: "contacts", label: "Contatos", icon: Phone },
+    { id: "settings", label: "Configurações", icon: Settings }
+  ] : [
+    { id: "dashboard", label: "Dashboard Clínico", icon: BarChart3 },
     { id: "appointments", label: "Agendamentos", icon: Calendar },
     { id: "patients", label: "Pacientes", icon: Users },
     { id: "records", label: "Prontuários", icon: Clipboard },
@@ -323,6 +338,10 @@ const AuthenticatedApp = () => {
               <div className="flex items-center justify-between">
                 <h1 className={`text-2xl font-bold ${darkMode ? "text-gray-100" : "text-gray-900"}`}>
                   {currentView === "dashboard" && "Dashboard Clínico"}
+                  {currentView === "reception-dashboard" && "Dashboard Recepção"}
+                  {currentView === "checkin" && "Check-in / Check-out"}
+                  {currentView === "queue" && "Fila de Espera"}
+                  {currentView === "contacts" && "Contatos"}
                   {currentView === "appointments" && "Agendamentos"}
                   {currentView === "patients" && "Pacientes"}
                   {currentView === "records" && "Prontuários Médicos"}
@@ -334,20 +353,21 @@ const AuthenticatedApp = () => {
                   {currentView === "ai-insights" && "Insights e Análise da IA"}
                   {currentView === "settings" && "Configurações da Clínica"}
                 </h1>
-                <button 
-                  onClick={() => {
-                    trackUserAction('create', `new_${currentView}`, { section: currentView });
-                    if (currentView === "appointments") setShowNewAppointmentModal(true);
-                    else if (currentView === "patients") setShowNewPatientModal(true);
-                    else if (currentView === "team") setShowNewMemberModal(true);
-                    else if (currentView === "records") setShowNewRecordModal(true);
-                    else if (currentView === "procedures") setShowNewProcedureModal(true);
-                    else if (currentView === "documents") setShowNewDocumentModal(true);
-                    else if (currentView === "financial") setShowNewTransactionModal(true);
-                    // Adicionar outros modais conforme necessário
-                  }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                >
+                {!['reception-dashboard', 'checkin', 'queue', 'contacts'].includes(currentView) && (
+                  <button 
+                    onClick={() => {
+                      trackUserAction('create', `new_${currentView}`, { section: currentView });
+                      if (currentView === "appointments") setShowNewAppointmentModal(true);
+                      else if (currentView === "patients") setShowNewPatientModal(true);
+                      else if (currentView === "team") setShowNewMemberModal(true);
+                      else if (currentView === "records") setShowNewRecordModal(true);
+                      else if (currentView === "procedures") setShowNewProcedureModal(true);
+                      else if (currentView === "documents") setShowNewDocumentModal(true);
+                      else if (currentView === "financial") setShowNewTransactionModal(true);
+                      // Adicionar outros modais conforme necessário
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  >
                   <Plus className="w-4 h-4" />
                   <span>
                     {currentView === "dashboard" && "Relatório Mensal"}
@@ -362,7 +382,8 @@ const AuthenticatedApp = () => {
                     {currentView === "ai-insights" && "Atualizar Insights"}
                     {currentView === "settings" && "Configurar"}
                   </span>
-                </button>
+                  </button>
+                )}
               </div>
 
               {/* Dynamic Content */}
@@ -372,6 +393,38 @@ const AuthenticatedApp = () => {
                   analytics={analytics}
                   appointments={appointments}
                   patients={patients}
+                />
+              )}
+
+              {/* Reception-specific views */}
+              {currentView === "reception-dashboard" && (
+                <ReceptionDashboard 
+                  darkMode={darkMode}
+                  appointments={appointments}
+                  patients={patients}
+                  checkInsToday={appointments.filter(apt => apt.status === 'confirmado' && apt.date === new Date().toISOString().split('T')[0]).length}
+                  waitingQueueSize={appointments.filter(apt => apt.status === 'confirmado').length}
+                  documentsToday={documents.length}
+                />
+              )}
+
+              {currentView === "checkin" && (
+                <CheckInOut 
+                  darkMode={darkMode}
+                  appointments={appointments}
+                />
+              )}
+
+              {currentView === "queue" && (
+                <WaitingQueue 
+                  darkMode={darkMode}
+                  appointments={appointments}
+                />
+              )}
+
+              {currentView === "contacts" && (
+                <ReceptionContacts 
+                  darkMode={darkMode}
                 />
               )}
               
