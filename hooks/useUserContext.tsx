@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { User, Permission, UserRole, MOCK_USERS } from '../types/user';
+import { User, Permission, UserRole, MOCK_USERS, ModuleType, hasModuleAccess, getAccessibleModules } from '../types/user';
 
 // Estados do contexto de usuário
 interface UserContextState {
@@ -46,6 +46,10 @@ interface UserContextType extends UserContextState {
   switchUser: (userId: string) => void; // Para desenvolvimento/admin
   isOnline: (userId: string) => boolean;
   getUserRoleInfo: () => { title: string; description: string; icon: string } | null;
+  
+  // Acesso a módulos
+  hasModuleAccess: (module: ModuleType) => boolean;
+  getAccessibleModules: () => ModuleType[];
 }
 
 // Estado inicial
@@ -298,14 +302,25 @@ export function UserProvider({ children }: UserProviderProps) {
     if (!state.currentUser) return null;
     
     const roleDescriptions = {
-      admin: { title: 'Administrador', description: 'Acesso total ao sistema', icon: '⚙️' },
-      doctor: { title: 'Médico', description: 'Acesso completo a prontuários', icon: '👨‍⚕️' },
+      admin: { title: 'Administrador', description: 'Acesso total ao Módulo Administração', icon: '⚙️' },
+      doctor: { title: 'Médico/Profissional', description: 'Acesso ao Módulo Atendimento', icon: '👨‍⚕️' },
       nurse: { title: 'Enfermeiro', description: 'Gestão de pacientes e procedimentos', icon: '👩‍⚕️' },
-      receptionist: { title: 'Recepcionista', description: 'Agendamentos e cadastros', icon: '🏥' },
+      receptionist: { title: 'Recepcionista', description: 'Acesso ao Módulo Recepção', icon: '🏥' },
+      financial: { title: 'Financeiro', description: 'Acesso à parte Financeira do Módulo Administração', icon: '💰' },
       viewer: { title: 'Visualizador', description: 'Acesso somente leitura', icon: '👁️' }
     };
     
     return roleDescriptions[state.currentUser.role];
+  };
+
+  const hasModuleAccessFunc = (module: ModuleType): boolean => {
+    if (!state.currentUser) return false;
+    return hasModuleAccess(state.currentUser.role, module);
+  };
+
+  const getAccessibleModulesFunc = (): ModuleType[] => {
+    if (!state.currentUser) return [];
+    return getAccessibleModules(state.currentUser.role);
   };
 
   const contextValue: UserContextType = {
@@ -323,7 +338,9 @@ export function UserProvider({ children }: UserProviderProps) {
     updatePreferences,
     switchUser,
     isOnline,
-    getUserRoleInfo
+    getUserRoleInfo,
+    hasModuleAccess: hasModuleAccessFunc,
+    getAccessibleModules: getAccessibleModulesFunc
   };
 
   return (
@@ -344,12 +361,13 @@ export function useUserContext(): UserContextType {
 
 // Hook de conveniência para verificações rápidas
 export function usePermissions() {
-  const { hasPermission, hasRole, hasAnyPermission, currentUser } = useUserContext();
+  const { hasPermission, hasRole, hasAnyPermission, currentUser, hasModuleAccess } = useUserContext();
   
   return {
     hasPermission,
     hasRole,
     hasAnyPermission,
+    hasModuleAccess,
     currentUser,
     
     // Verificações específicas comuns
@@ -358,10 +376,17 @@ export function usePermissions() {
     canManageAppointments: hasAnyPermission(['appointments:create', 'appointments:update', 'appointments:delete']),
     canManageMedicalRecords: hasAnyPermission(['medical-records:create', 'medical-records:update']),
     canViewFinancial: hasPermission('financial:read'),
+    canManageFinancial: hasAnyPermission(['financial:create', 'financial:update', 'financial:delete']),
     canManageSystem: hasPermission('admin:system'),
     isDoctor: hasRole('doctor'),
     isNurse: hasRole('nurse'),
     isAdmin: hasRole('admin'),
-    isReceptionist: hasRole('receptionist')
+    isReceptionist: hasRole('receptionist'),
+    isFinancial: hasRole('financial'),
+    
+    // Acesso a módulos
+    canAccessReception: hasModuleAccess('reception'),
+    canAccessMedical: hasModuleAccess('medical'),
+    canAccessAdministration: hasModuleAccess('administration')
   };
 }

@@ -64,7 +64,7 @@ function RoleBadge({ role, darkMode }: { role: UserRole, darkMode: boolean }) {
         };
       case 'doctor':
         return {
-          label: 'Médico',
+          label: 'Médico/Profissional',
           color: 'from-blue-500 to-blue-600',
           textColor: 'text-white'
         };
@@ -78,6 +78,12 @@ function RoleBadge({ role, darkMode }: { role: UserRole, darkMode: boolean }) {
         return {
           label: 'Recepcionista',
           color: 'from-purple-500 to-purple-600',
+          textColor: 'text-white'
+        };
+      case 'financial':
+        return {
+          label: 'Financeiro',
+          color: 'from-yellow-500 to-orange-600',
           textColor: 'text-white'
         };
       case 'viewer':
