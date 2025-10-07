@@ -36,6 +36,7 @@ const getMenuItemsByRole = (role: UserRole) => {
     { id: "dashboard", label: "Dashboard", icon: BarChart3, roles: ['admin', 'doctor', 'nurse'] },
     { id: "reception-dashboard", label: "Recepção", icon: Activity, roles: ['receptionist'] },
     { id: "appointments", label: "Agendamentos", icon: Calendar, roles: ['admin', 'doctor', 'nurse', 'receptionist'] },
+    { id: "attendance", label: "Atendimento", icon: Stethoscope, roles: ['doctor', 'nurse'] },
     { id: "patients", label: "Pacientes", icon: Users, roles: ['admin', 'doctor', 'nurse', 'receptionist'] },
     { id: "checkin", label: "Check-in", icon: UserCheck, roles: ['receptionist'] },
     { id: "queue", label: "Fila de Espera", icon: Timer, roles: ['receptionist', 'nurse'] },

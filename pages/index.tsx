@@ -49,6 +49,7 @@ import DocumentsView from '../components/DocumentsView';
 import TeamView from '../components/TeamView';
 import ProceduresView from '../components/ProceduresView';
 import FinancialView from '../components/FinancialView';
+import AttendanceView from '../components/AttendanceView';
 import Modal from '../components/Modal';
 
 // Importar componentes de recepção dinamicamente
@@ -281,6 +282,7 @@ const AuthenticatedApp = () => {
                   {currentView === "queue" && "Fila de Atendimento"}
                   {currentView === "contacts" && "Contatos"}
                   {currentView === "appointments" && "Agendamentos"}
+                  {currentView === "attendance" && "Atendimento"}
                   {currentView === "patients" && "Pacientes"}
                   {currentView === "records" && "Prontuários Médicos"}
                   {currentView === "procedures" && "Procedimentos e Exames"}
@@ -330,6 +332,7 @@ const AuthenticatedApp = () => {
                     {currentView === "queue" && "Chamar Próximo"}
                     {currentView === "contacts" && "Novo Contato"}
                     {currentView === "appointments" && "Nova Consulta"}
+                    {currentView === "attendance" && "Iniciar Atendimento"}
                     {currentView === "patients" && "Novo Paciente"}
                     {currentView === "records" && "Novo Prontuário"}
                     {currentView === "procedures" && "Novo Procedimento"}
@@ -359,6 +362,12 @@ const AuthenticatedApp = () => {
                   appointments={appointments}
                   selectedAppointment={selectedAppointment}
                   setSelectedAppointment={setSelectedAppointment}
+                />
+              )}
+              
+              {currentView === "attendance" && (
+                <AttendanceView 
+                  darkMode={darkMode}
                 />
               )}
               
@@ -516,6 +525,7 @@ const AuthenticatedApp = () => {
               
               {currentView !== "dashboard" && 
                currentView !== "appointments" && 
+               currentView !== "attendance" && 
                currentView !== "patients" && 
                currentView !== "records" && 
                currentView !== "documents" && 
