@@ -61,22 +61,22 @@ function RoleBadge({ role, darkMode }: { role: UserRole, darkMode: boolean }) {
           color: 'from-red-500 to-pink-600',
           textColor: 'text-white'
         };
-      case 'doctor':
+      case 'medical':
         return {
-          label: 'Médico',
+          label: 'Médico/Profissional',
           color: 'from-blue-500 to-blue-600',
           textColor: 'text-white'
         };
-      case 'nurse':
+      case 'reception':
         return {
-          label: 'Enfermeiro(a)',
-          color: 'from-green-500 to-green-600',
+          label: 'Recepção',
+          color: 'from-purple-500 to-purple-600',
           textColor: 'text-white'
         };
-      case 'receptionist':
+      case 'financial':
         return {
-          label: 'Recepcionista',
-          color: 'from-purple-500 to-purple-600',
+          label: 'Financeiro',
+          color: 'from-green-500 to-green-600',
           textColor: 'text-white'
         };
       case 'viewer':

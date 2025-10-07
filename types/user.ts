@@ -1,62 +1,94 @@
-// Tipos de usuário para sistema médico
-export type UserRole = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'viewer';
+// Hierarquia Simples de Usuários por Módulos - ClinicFlow25
 
-// Permissões específicas do sistema
+// Tipos de usuário para sistema médico - Hierarquia Simples por Módulos
+export type UserRole = 
+  | 'admin'              // Administrador - Acesso total
+  | 'medical'            // Médico/Profissional - Módulo Atendimento
+  | 'reception'          // Usuário Recepção - Módulo Recepção
+  | 'financial'          // Usuário Financeiro - Área Financeira do Módulo Administração
+  | 'viewer';            // Visualizador - Acesso limitado
+
+// Definir módulo principal por role
+export type ModuleAccess = 'reception' | 'medical' | 'administration';
+
+export const ROLE_MODULE_ACCESS: Record<UserRole, ModuleAccess[]> = {
+  admin: ['reception', 'medical', 'administration'],        // Acesso total
+  medical: ['medical'],                                      // Apenas atendimento
+  reception: ['reception'],                                  // Apenas recepção
+  financial: ['administration'],                             // Apenas administração (área financeira)
+  viewer: ['reception', 'medical', 'administration']        // Leitura em todos (limitado)
+};
+
+// Permissões específicas do sistema - Organizadas por Módulo
 export type Permission = 
+  // === MÓDULO RECEPÇÃO ===
   // Pacientes
-  | 'patients:create' 
-  | 'patients:read' 
-  | 'patients:update' 
-  | 'patients:delete'
+  | 'reception:patients:create' 
+  | 'reception:patients:read' 
+  | 'reception:patients:update' 
+  | 'reception:patients:delete'
   
-  // Consultas/Agendamentos
-  | 'appointments:create' 
-  | 'appointments:read' 
-  | 'appointments:update' 
-  | 'appointments:delete'
+  // Agendamentos
+  | 'reception:appointments:create' 
+  | 'reception:appointments:read' 
+  | 'reception:appointments:update' 
+  | 'reception:appointments:delete'
   
+  // Check-in/out e Fila
+  | 'reception:checkin:manage'
+  | 'reception:queue:manage'
+  | 'reception:queue:priority'
+  
+  // === MÓDULO ATENDIMENTO ===
   // Prontuários Médicos
-  | 'medical-records:create' 
-  | 'medical-records:read' 
-  | 'medical-records:update' 
-  | 'medical-records:delete'
+  | 'medical:records:create' 
+  | 'medical:records:read' 
+  | 'medical:records:update' 
+  | 'medical:records:delete'
   
-  // Documentos
+  // Procedimentos e Exames
+  | 'medical:procedures:create' 
+  | 'medical:procedures:read' 
+  | 'medical:procedures:update' 
+  | 'medical:procedures:delete'
+  
+  // Prescrições
+  | 'medical:prescriptions:create'
+  | 'medical:prescriptions:read'
+  | 'medical:prescriptions:update'
+  
+  // === MÓDULO ADMINISTRAÇÃO ===
+  // Financeiro
+  | 'admin:financial:create' 
+  | 'admin:financial:read' 
+  | 'admin:financial:update' 
+  | 'admin:financial:delete'
+  | 'admin:financial:reports'
+  
+  // Equipe e Usuários
+  | 'admin:team:create' 
+  | 'admin:team:read' 
+  | 'admin:team:update' 
+  | 'admin:team:delete'
+  | 'admin:users:manage'
+  
+  // Relatórios e Analytics
+  | 'admin:analytics:read' 
+  | 'admin:analytics:export'
+  | 'admin:reports:generate'
+  
+  // Configurações do Sistema
+  | 'admin:settings:read' 
+  | 'admin:settings:update'
+  | 'admin:system:backup'
+  | 'admin:system:maintenance'
+  
+  // === PERMISSÕES GERAIS ===
+  // Documentos (todos os módulos)
   | 'documents:create' 
   | 'documents:read' 
   | 'documents:update' 
-  | 'documents:delete'
-  
-  // Equipe Médica
-  | 'team:create' 
-  | 'team:read' 
-  | 'team:update' 
-  | 'team:delete'
-  
-  // Procedimentos
-  | 'procedures:create' 
-  | 'procedures:read' 
-  | 'procedures:update' 
-  | 'procedures:delete'
-  
-  // Financeiro
-  | 'financial:create' 
-  | 'financial:read' 
-  | 'financial:update' 
-  | 'financial:delete'
-  
-  // Relatórios
-  | 'analytics:read' 
-  | 'analytics:export'
-  
-  // Configurações
-  | 'settings:read' 
-  | 'settings:update'
-  
-  // Administração
-  | 'admin:users' 
-  | 'admin:system' 
-  | 'admin:backup';
+  | 'documents:delete';
 
 // Interface do usuário principal
 export interface User {
@@ -93,113 +125,118 @@ export interface User {
   };
 }
 
-// Configuração de papéis e suas permissões padrão
+// Configuração de papéis e suas permissões - Hierarquia Simples
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  // ADMINISTRADOR - Acesso Total a Todos os Módulos
   admin: [
-    // Todas as permissões
-    'patients:create', 'patients:read', 'patients:update', 'patients:delete',
-    'appointments:create', 'appointments:read', 'appointments:update', 'appointments:delete',
-    'medical-records:create', 'medical-records:read', 'medical-records:update', 'medical-records:delete',
-    'documents:create', 'documents:read', 'documents:update', 'documents:delete',
-    'team:create', 'team:read', 'team:update', 'team:delete',
-    'procedures:create', 'procedures:read', 'procedures:update', 'procedures:delete',
-    'financial:create', 'financial:read', 'financial:update', 'financial:delete',
-    'analytics:read', 'analytics:export',
-    'settings:read', 'settings:update',
-    'admin:users', 'admin:system', 'admin:backup'
+    // Recepção - Todas
+    'reception:patients:create', 'reception:patients:read', 'reception:patients:update', 'reception:patients:delete',
+    'reception:appointments:create', 'reception:appointments:read', 'reception:appointments:update', 'reception:appointments:delete',
+    'reception:checkin:manage', 'reception:queue:manage', 'reception:queue:priority',
+    
+    // Atendimento - Todas
+    'medical:records:create', 'medical:records:read', 'medical:records:update', 'medical:records:delete',
+    'medical:procedures:create', 'medical:procedures:read', 'medical:procedures:update', 'medical:procedures:delete',
+    'medical:prescriptions:create', 'medical:prescriptions:read', 'medical:prescriptions:update',
+    
+    // Administração - Todas
+    'admin:financial:create', 'admin:financial:read', 'admin:financial:update', 'admin:financial:delete', 'admin:financial:reports',
+    'admin:team:create', 'admin:team:read', 'admin:team:update', 'admin:team:delete', 'admin:users:manage',
+    'admin:analytics:read', 'admin:analytics:export', 'admin:reports:generate',
+    'admin:settings:read', 'admin:settings:update', 'admin:system:backup', 'admin:system:maintenance',
+    
+    // Documentos
+    'documents:create', 'documents:read', 'documents:update', 'documents:delete'
   ],
   
-  doctor: [
-    // Pacientes: total
-    'patients:create', 'patients:read', 'patients:update', 'patients:delete',
-    // Consultas: total
-    'appointments:create', 'appointments:read', 'appointments:update', 'appointments:delete',
-    // Prontuários: total
-    'medical-records:create', 'medical-records:read', 'medical-records:update', 'medical-records:delete',
-    // Documentos: total
-    'documents:create', 'documents:read', 'documents:update', 'documents:delete',
-    // Procedimentos: total
-    'procedures:create', 'procedures:read', 'procedures:update', 'procedures:delete',
-    // Equipe: apenas leitura
-    'team:read',
-    // Financeiro: apenas leitura dos próprios
-    'financial:read',
-    // Relatórios: leitura
-    'analytics:read'
-  ],
-  
-  nurse: [
-    // Pacientes: CRUD
-    'patients:create', 'patients:read', 'patients:update',
-    // Consultas: CRUD
-    'appointments:create', 'appointments:read', 'appointments:update',
-    // Prontuários: leitura e alguns updates
-    'medical-records:read', 'medical-records:update',
-    // Documentos: CRUD
+  // USUÁRIO MÉDICO/PROFISSIONAL - Módulo Atendimento
+  medical: [
+    // Atendimento - Completo
+    'medical:records:create', 'medical:records:read', 'medical:records:update', 'medical:records:delete',
+    'medical:procedures:create', 'medical:procedures:read', 'medical:procedures:update', 'medical:procedures:delete',
+    'medical:prescriptions:create', 'medical:prescriptions:read', 'medical:prescriptions:update',
+    
+    // Documentos médicos
     'documents:create', 'documents:read', 'documents:update',
-    // Procedimentos: alguns
-    'procedures:read', 'procedures:update',
-    // Equipe: leitura
-    'team:read'
+    
+    // Leitura básica de outros módulos
+    'reception:patients:read', 'reception:appointments:read',
+    'admin:team:read'
   ],
   
-  receptionist: [
-    // Pacientes: CRUD
-    'patients:create', 'patients:read', 'patients:update',
-    // Consultas: CRUD
-    'appointments:create', 'appointments:read', 'appointments:update', 'appointments:delete',
-    // Documentos: básicos
+  // USUÁRIO RECEPÇÃO - Módulo Recepção
+  reception: [
+    // Recepção - Completo
+    'reception:patients:create', 'reception:patients:read', 'reception:patients:update', 'reception:patients:delete',
+    'reception:appointments:create', 'reception:appointments:read', 'reception:appointments:update', 'reception:appointments:delete',
+    'reception:checkin:manage', 'reception:queue:manage', 'reception:queue:priority',
+    
+    // Documentos básicos
     'documents:create', 'documents:read', 'documents:update',
-    // Financeiro: básico
-    'financial:create', 'financial:read', 'financial:update',
-    // Equipe: leitura
-    'team:read',
-    // Procedimentos: leitura
-    'procedures:read'
+    
+    // Leitura limitada
+    'admin:team:read', 'medical:procedures:read'
   ],
   
+  // USUÁRIO FINANCEIRO - Área Financeira do Módulo Administração
+  financial: [
+    // Administração - Apenas Financeiro
+    'admin:financial:create', 'admin:financial:read', 'admin:financial:update', 'admin:financial:delete', 'admin:financial:reports',
+    'admin:analytics:read', 'admin:reports:generate',
+    
+    // Documentos financeiros
+    'documents:create', 'documents:read', 'documents:update',
+    
+    // Leitura básica para contexto
+    'reception:patients:read', 'reception:appointments:read',
+    'admin:team:read'
+  ],
+  
+  // VISUALIZADOR - Acesso Limitado de Leitura
   viewer: [
-    // Apenas leituras básicas
-    'patients:read',
-    'appointments:read',
-    'medical-records:read',
-    'documents:read',
-    'team:read',
-    'procedures:read',
-    'analytics:read'
+    // Apenas leituras básicas em todos os módulos
+    'reception:patients:read', 'reception:appointments:read',
+    'medical:records:read', 'medical:procedures:read',
+    'admin:analytics:read', 'admin:team:read',
+    'documents:read'
   ]
 };
 
-// Descrições dos papéis
-export const ROLE_DESCRIPTIONS: Record<UserRole, { title: string; description: string; icon: string }> = {
+// Descrições dos papéis - Hierarquia Simples
+export const ROLE_DESCRIPTIONS: Record<UserRole, { title: string; description: string; icon: string; module: string }> = {
   admin: {
     title: 'Administrador',
-    description: 'Acesso total ao sistema, configurações e gestão de usuários',
-    icon: '⚙️'
+    description: 'Acesso total a todos os módulos do sistema',
+    icon: '⚙️',
+    module: 'Todos os Módulos'
   },
-  doctor: {
-    title: 'Médico',
-    description: 'Acesso completo a prontuários, prescrições e consultas médicas',
-    icon: '👨‍⚕️'
+  medical: {
+    title: 'Médico/Profissional',
+    description: 'Acesso ao módulo de atendimento médico',
+    icon: '👨‍⚕️',
+    module: 'Módulo Atendimento'
   },
-  nurse: {
-    title: 'Enfermeiro',
-    description: 'Gestão de pacientes, alguns procedimentos e acompanhamento',
-    icon: '👩‍⚕️'
+  reception: {
+    title: 'Usuário Recepção',
+    description: 'Acesso ao módulo de recepção e atendimento inicial',
+    icon: '🏥',
+    module: 'Módulo Recepção'
   },
-  receptionist: {
-    title: 'Recepcionista',
-    description: 'Agendamentos, cadastro de pacientes e gestão administrativa',
-    icon: '🏥'
+  financial: {
+    title: 'Usuário Financeiro',
+    description: 'Acesso à área financeira do módulo administração',
+    icon: '💰',
+    module: 'Módulo Administração (Financeiro)'
   },
   viewer: {
     title: 'Visualizador',
-    description: 'Acesso somente leitura para consultas e relatórios',
-    icon: '👁️'
+    description: 'Acesso de leitura limitado em todos os módulos',
+    icon: '👁️',
+    module: 'Todos (Somente Leitura)'
   }
 };
 
-// Usuários de exemplo para desenvolvimento
+// Usuários de exemplo para desenvolvimento - Hierarquia Simples
 export const MOCK_USERS: User[] = [
   {
     id: '1',
@@ -208,12 +245,12 @@ export const MOCK_USERS: User[] = [
     role: 'admin',
     permissions: ROLE_PERMISSIONS.admin,
     crm: 'CRM/SP 123456',
-    specialty: 'Clínica Geral',
-    department: 'Administração',
+    specialty: 'Administração',
+    department: 'Direção',
     phone: '(11) 99999-1111',
     status: 'active',
     isOnline: true,
-    lastLogin: '2025-09-26T14:30:00Z',
+    lastLogin: '2025-10-07T14:30:00Z',
     preferences: {
       darkMode: false,
       language: 'pt-BR',
@@ -228,15 +265,15 @@ export const MOCK_USERS: User[] = [
     id: '2',
     name: 'Dra. Ana Paula Silva',
     email: 'ana.paula@clinica.com.br',
-    role: 'doctor',
-    permissions: ROLE_PERMISSIONS.doctor,
+    role: 'medical',
+    permissions: ROLE_PERMISSIONS.medical,
     crm: 'CRM/SP 654321',
     specialty: 'Cardiologia',
-    department: 'Clínica Médica',
+    department: 'Atendimento Médico',
     phone: '(11) 99999-2222',
     status: 'active',
     isOnline: true,
-    lastLogin: '2025-09-26T14:45:00Z',
+    lastLogin: '2025-10-07T14:45:00Z',
     preferences: {
       darkMode: true,
       language: 'pt-BR',
@@ -249,16 +286,36 @@ export const MOCK_USERS: User[] = [
   },
   {
     id: '3',
-    name: 'Enf. Maria Santos',
-    email: 'maria.santos@clinica.com.br',
-    role: 'nurse',
-    permissions: ROLE_PERMISSIONS.nurse,
-    coren: 'COREN/SP 123456',
-    department: 'Enfermagem',
+    name: 'Carla Oliveira',
+    email: 'carla.oliveira@clinica.com.br',
+    role: 'reception',
+    permissions: ROLE_PERMISSIONS.reception,
+    department: 'Recepção',
     phone: '(11) 99999-3333',
     status: 'active',
+    isOnline: true,
+    lastLogin: '2025-10-07T08:00:00Z',
+    preferences: {
+      darkMode: false,
+      language: 'pt-BR',
+      notifications: {
+        email: true,
+        push: true,
+        sms: false
+      }
+    }
+  },
+  {
+    id: '4',
+    name: 'Pedro Santos',
+    email: 'pedro.santos@clinica.com.br',
+    role: 'financial',
+    permissions: ROLE_PERMISSIONS.financial,
+    department: 'Financeiro',
+    phone: '(11) 99999-4444',
+    status: 'active',
     isOnline: false,
-    lastLogin: '2025-09-26T08:00:00Z',
+    lastLogin: '2025-10-07T09:30:00Z',
     preferences: {
       darkMode: false,
       language: 'pt-BR',
@@ -270,24 +327,50 @@ export const MOCK_USERS: User[] = [
     }
   },
   {
-    id: '4',
-    name: 'Carla Oliveira',
-    email: 'carla.oliveira@clinica.com.br',
-    role: 'receptionist',
-    permissions: ROLE_PERMISSIONS.receptionist,
-    department: 'Recepção',
-    phone: '(11) 99999-4444',
+    id: '5',
+    name: 'Enf. Maria Santos',
+    email: 'maria.santos@clinica.com.br',
+    role: 'medical',
+    permissions: ROLE_PERMISSIONS.medical,
+    coren: 'COREN/SP 123456',
+    department: 'Enfermagem',
+    phone: '(11) 99999-5555',
     status: 'active',
-    isOnline: true,
-    lastLogin: '2025-09-26T07:30:00Z',
+    isOnline: false,
+    lastLogin: '2025-10-07T07:30:00Z',
     preferences: {
       darkMode: false,
       language: 'pt-BR',
       notifications: {
         email: true,
-        push: true,
+        push: false,
         sms: false
       }
     }
   }
 ];
+
+// Função para verificar acesso ao módulo
+export function hasModuleAccess(userRole: UserRole, module: ModuleAccess): boolean {
+  return ROLE_MODULE_ACCESS[userRole]?.includes(module) || false;
+}
+
+// Função para obter módulos acessíveis
+export function getAccessibleModules(userRole: UserRole): ModuleAccess[] {
+  return ROLE_MODULE_ACCESS[userRole] || [];
+}
+
+// Função para verificar se é administrador
+export function isAdmin(userRole: UserRole): boolean {
+  return userRole === 'admin';
+}
+
+// Função para verificar se tem acesso financeiro
+export function hasFinancialAccess(userRole: UserRole): boolean {
+  return userRole === 'admin' || userRole === 'financial';
+}
+
+// Função para verificar se é profissional de saúde
+export function isHealthProfessional(userRole: UserRole): boolean {
+  return userRole === 'medical' || userRole === 'admin';
+}

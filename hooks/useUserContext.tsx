@@ -299,9 +299,9 @@ export function UserProvider({ children }: UserProviderProps) {
     
     const roleDescriptions = {
       admin: { title: 'Administrador', description: 'Acesso total ao sistema', icon: '⚙️' },
-      doctor: { title: 'Médico', description: 'Acesso completo a prontuários', icon: '👨‍⚕️' },
-      nurse: { title: 'Enfermeiro', description: 'Gestão de pacientes e procedimentos', icon: '👩‍⚕️' },
-      receptionist: { title: 'Recepcionista', description: 'Agendamentos e cadastros', icon: '🏥' },
+      medical: { title: 'Médico/Profissional', description: 'Acesso a módulo médico', icon: '👨‍⚕️' },
+      reception: { title: 'Recepção', description: 'Módulo de recepção', icon: '🏥' },
+      financial: { title: 'Financeiro', description: 'Módulo financeiro', icon: '💰' },
       viewer: { title: 'Visualizador', description: 'Acesso somente leitura', icon: '👁️' }
     };
     
@@ -353,15 +353,15 @@ export function usePermissions() {
     currentUser,
     
     // Verificações específicas comuns
-    canManagePatients: hasAnyPermission(['patients:create', 'patients:update', 'patients:delete']),
-    canViewPatients: hasPermission('patients:read'),
-    canManageAppointments: hasAnyPermission(['appointments:create', 'appointments:update', 'appointments:delete']),
-    canManageMedicalRecords: hasAnyPermission(['medical-records:create', 'medical-records:update']),
-    canViewFinancial: hasPermission('financial:read'),
-    canManageSystem: hasPermission('admin:system'),
-    isDoctor: hasRole('doctor'),
-    isNurse: hasRole('nurse'),
+    canManagePatients: hasAnyPermission(['reception:patients:create', 'reception:patients:update', 'reception:patients:delete']),
+    canViewPatients: hasPermission('reception:patients:read'),
+    canManageAppointments: hasAnyPermission(['reception:appointments:create', 'reception:appointments:update', 'reception:appointments:delete']),
+    canManageMedicalRecords: hasAnyPermission(['medical:records:create', 'medical:records:update']),
+    canViewFinancial: hasPermission('admin:financial:read'),
+    canManageSystem: hasPermission('admin:system:maintenance'),
+    isMedical: hasRole('medical'),
+    isFinancial: hasRole('financial'),
     isAdmin: hasRole('admin'),
-    isReceptionist: hasRole('receptionist')
+    isReception: hasRole('reception')
   };
 }

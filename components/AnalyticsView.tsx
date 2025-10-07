@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Star, Clock, RefreshCw, Download } from 'lucide-react';
+import AnalyticsLayout from './layouts/AnalyticsLayout';
 import StatCard from './StatCard';
 
 interface AnalyticsViewProps {
@@ -17,8 +18,28 @@ interface AnalyticsViewProps {
 }
 
 const AnalyticsView: React.FC<AnalyticsViewProps> = ({ darkMode = false, analytics }) => {
+  const handleGenerateReport = () => {
+    console.log('Generating report...');
+    // Implementar lógica de geração de relatório
+  };
+
+  const handleFilter = (filters: any) => {
+    console.log('Applying filters:', filters);
+    // Implementar lógica de filtros
+  };
+
+  const totalRevenue = 85000; // Valor fixo por enquanto
+  const monthlyGrowth = 12; // Valor fixo por enquanto
+
   return (
-    <div className="space-y-6">
+    <AnalyticsLayout
+      darkMode={darkMode}
+      totalRevenue={totalRevenue}
+      monthlyGrowth={monthlyGrowth}
+      reportsPeriod="Últimos 30 dias"
+      onGenerateReport={handleGenerateReport}
+      onFilter={handleFilter}
+    >
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
@@ -222,7 +243,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ darkMode = false, analyti
           </button>
         </div>
       </div>
-    </div>
+    </AnalyticsLayout>
   );
 };
 

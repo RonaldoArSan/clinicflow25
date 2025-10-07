@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, Calendar, DollarSign, Star, User, Bell } from 'lucide-react';
 import StatCard from './StatCard';
+import DashboardLayout from './layouts/DashboardLayout';
 import { useSimpleNotifications } from '@/hooks/useSimpleNotifications';
 
 interface DashboardProps {
@@ -64,7 +65,17 @@ const Dashboard: React.FC<DashboardProps> = ({ darkMode = false, analytics, appo
   };
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout
+      darkMode={darkMode}
+      title="Dashboard Clínico"
+      subtitle="Visão geral das atividades da clínica"
+      analytics={{
+        activePatients: analytics.activePatients,
+        todayAppointments: analytics.todayAppointments,
+        monthRevenue: analytics.monthRevenue,
+        patientSatisfaction: analytics.patientSatisfaction
+      }}
+    >
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
@@ -261,7 +272,7 @@ const Dashboard: React.FC<DashboardProps> = ({ darkMode = false, analytics, appo
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

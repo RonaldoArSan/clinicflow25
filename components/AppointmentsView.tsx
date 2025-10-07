@@ -1,6 +1,7 @@
 import React from 'react';
-import { Plus, Search, Filter, Download, X } from 'lucide-react';
+import { Calendar, Clock, Users, Search, Filter, Plus, X, Download } from 'lucide-react';
 import AppointmentCard from './AppointmentCard';
+import AppointmentsLayout from './layouts/AppointmentsLayout';
 import { Appointment } from '../types';
 
 interface AppointmentsViewProps {
@@ -16,6 +17,32 @@ const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   selectedAppointment, 
   setSelectedAppointment 
 }) => {
+  const handleAddAppointment = () => {
+    console.log('Add new appointment');
+    // Implementar lógica para adicionar consulta
+  };
+
+  const handleFilter = (filters: any) => {
+    console.log('Applying filters:', filters);
+    // Implementar lógica de filtros
+  };
+
+  const todayAppointments = appointments.filter(apt => {
+    const today = new Date().toDateString();
+    const aptDate = new Date(apt.date).toDateString();
+    return today === aptDate;
+  }).length;
+
+  const pendingAppointments = appointments.filter(apt => 
+    apt.status === 'agendado' || apt.status === 'confirmado'
+  ).length;
+
+  const completedToday = appointments.filter(apt => {
+    const today = new Date().toDateString();
+    const aptDate = new Date(apt.date).toDateString();
+    return today === aptDate && apt.status === 'concluido';
+  }).length;
+
   const getStatusColor = (status: string) => {
     if (darkMode) {
       switch (status) {
@@ -55,8 +82,15 @@ const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Search and Filters */}
+    <AppointmentsLayout
+      darkMode={darkMode}
+      todayAppointments={todayAppointments}
+      pendingAppointments={pendingAppointments}
+      completedToday={completedToday}
+      onAddAppointment={handleAddAppointment}
+      onFilter={handleFilter}
+    >
+      {/* Appointments Content */}
       <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} p-6 rounded-lg shadow-sm border transition-colors`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
@@ -245,7 +279,7 @@ const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </AppointmentsLayout>
   );
 };
 

@@ -84,23 +84,23 @@ function RoleBadge({ role, darkMode }: { role: UserRole, darkMode: boolean }) {
           color: 'from-red-500 to-pink-600',
           icon: Shield
         };
-      case 'doctor':
+      case 'medical':
         return {
-          label: 'Médico',
+          label: 'Médico/Profissional',
           color: 'from-blue-500 to-blue-600',
           icon: Badge
         };
-      case 'nurse':
+      case 'reception':
         return {
-          label: 'Enfermeiro(a)',
-          color: 'from-green-500 to-green-600',
-          icon: Badge
-        };
-      case 'receptionist':
-        return {
-          label: 'Recepcionista',
+          label: 'Recepção',
           color: 'from-purple-500 to-purple-600',
           icon: User
+        };
+      case 'financial':
+        return {
+          label: 'Financeiro',
+          color: 'from-green-500 to-green-600',
+          icon: Badge
         };
       case 'viewer':
         return {
@@ -551,7 +551,7 @@ export function UserProfile({ darkMode = false, onClose }: UserProfileProps) {
                 />
               </div>
 
-              {currentUser.role === 'doctor' && (
+              {currentUser.role === 'medical' && (
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     darkMode ? 'text-gray-300' : 'text-gray-700'

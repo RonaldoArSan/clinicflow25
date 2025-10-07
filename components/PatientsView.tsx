@@ -1,6 +1,7 @@
 import React from 'react';
 import { UserPlus, Search, Filter, Download, X } from 'lucide-react';
 import PatientCard from './PatientCard';
+import PatientsLayout from './layouts/PatientsLayout';
 import { Patient } from '../types';
 
 interface PatientsViewProps {
@@ -16,50 +17,41 @@ const PatientsView: React.FC<PatientsViewProps> = ({
   selectedPatient, 
   setSelectedPatient 
 }) => {
+  const handleSearch = (query: string) => {
+    console.log('Searching for:', query);
+    // Implementar lógica de busca
+  };
+
+  const handleFilter = (filters: any) => {
+    console.log('Applying filters:', filters);
+    // Implementar lógica de filtros
+  };
+
+  const handleAddPatient = () => {
+    console.log('Add new patient');
+    // Implementar lógica para adicionar paciente
+  };
+
+  const totalPatients = patients.length;
+  const activePatients = patients.filter(p => p.status === 'ativo').length;
+  const newPatientsThisMonth = patients.filter(p => {
+    // Assumir que temos uma data de criação ou usar a data atual
+    const now = new Date();
+    return true; // Placeholder - implementar lógica real com campo de data
+  }).length;
+
   return (
-    <div className="space-y-6">
-      {/* Search and Filters */}
+    <PatientsLayout
+      darkMode={darkMode}
+      totalPatients={totalPatients}
+      activePatients={activePatients}
+      newPatientsThisMonth={newPatientsThisMonth}
+      onSearch={handleSearch}
+      onFilter={handleFilter}
+      onAddPatient={handleAddPatient}
+    >
+      {/* Patients Grid */}
       <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} p-6 rounded-lg shadow-sm border transition-colors`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className={`w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
-              <input
-                type="text"
-                placeholder="Buscar pacientes..."
-                className={`pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                  darkMode 
-                    ? "bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400" 
-                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                }`}
-              />
-            </div>
-            <select className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-              darkMode ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-900"
-            }`}>
-              <option>Todos os convênios</option>
-              <option>Unimed</option>
-              <option>Bradesco Saúde</option>
-              <option>Particular</option>
-            </select>
-            <select className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-              darkMode ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-900"
-            }`}>
-              <option>Todos os status</option>
-              <option>Ativo</option>
-              <option>Inativo</option>
-            </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className={`p-2 ${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"} transition-colors`}>
-              <Filter className="w-5 h-5" />
-            </button>
-            <button className={`p-2 ${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"} transition-colors`}>
-              <Download className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        
         {/* Patients Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {patients.map((patient) => (
@@ -276,7 +268,7 @@ const PatientsView: React.FC<PatientsViewProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </PatientsLayout>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Search, Filter, Plus, Calendar, User, Stethoscope, X, UserCheck, Clock } from 'lucide-react';
+import MedicalRecordsLayout from './layouts/MedicalRecordsLayout';
 import { MedicalRecord, Patient, Doctor } from '../types';
 
 interface MedicalRecordsViewProps {
