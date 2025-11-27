@@ -165,14 +165,15 @@ export const AttendanceSession: React.FC<AttendanceSessionProps> = ({
           {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
               <div
+                onClick={() => setCurrentStep(step)}
                 className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
+                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors
                   ${
                     currentStep >= step
                       ? "bg-blue-600 text-white"
                       : darkMode
-                      ? "bg-gray-700 text-gray-400"
-                      : "bg-gray-200 text-gray-600"
+                      ? "bg-gray-700 text-gray-400 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                   }
                 `}
               >
