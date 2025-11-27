@@ -12,6 +12,7 @@ export interface Patient {
   reason: string;
   status: 'waiting' | 'in-progress' | 'completed';
   priority: 'normal' | 'urgent' | 'emergency';
+  assignedTo?: string; // ID do médico se já estiver atribuído
 }
 
 export interface VitalSigns {
@@ -71,7 +72,8 @@ export const useAttendance = () => {
         appointmentTime: '09:30',
         reason: 'Dor no peito',
         status: 'waiting',
-        priority: 'urgent'
+        priority: 'urgent',
+        assignedTo: 'current_doctor' // Exemplo: atribuído ao médico atual
       },
       {
         id: '3',
@@ -97,7 +99,8 @@ export const useAttendance = () => {
         appointmentTime: '10:30',
         reason: 'Dor de cabeça constante',
         status: 'waiting',
-        priority: 'normal'
+        priority: 'normal',
+        assignedTo: 'other_doctor' // Exemplo: atribuído a outro médico
       },
       {
         id: '5',
@@ -110,13 +113,25 @@ export const useAttendance = () => {
         appointmentTime: '11:00',
         reason: 'Pressão alta',
         status: 'waiting',
-        priority: 'urgent'
+        priority: 'urgent',
+        assignedTo: 'current_doctor'
       }
     ];
 
     setTodayPatients(mockPatients);
     setIsLoading(false);
   }, []);
+
+  const callPatient = (patientId: string) => {
+    // Simulação de chamar paciente (pode disparar som, notificação, etc)
+    if ((window as any).showToast) {
+      (window as any).showToast({
+        type: 'info',
+        title: 'Chamando Paciente',
+        message: `Chamando paciente para o consultório...`
+      });
+    }
+  };
 
   const startAttendance = (patient: Patient) => {
     // Atualizar status do paciente para 'in-progress'
@@ -229,6 +244,7 @@ export const useAttendance = () => {
     updateAttendanceRecord,
     getPatientsByStatus,
     getAttendancesByStatus,
-    getTodayStats
+    getTodayStats,
+    callPatient
   };
 };
