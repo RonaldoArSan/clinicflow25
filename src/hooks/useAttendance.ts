@@ -1,19 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQueue, QueuePatient } from '../context/QueueContext';
 
-export interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  phone: string;
-  email: string;
-  address: string;
-  healthPlan: string;
-  appointmentTime: string;
-  reason: string;
-  status: 'waiting' | 'in-progress' | 'completed';
-  priority: 'normal' | 'urgent' | 'emergency';
-  assignedTo?: string; // ID do médico se já estiver atribuído
-}
+// Re-exporting interfaces for compatibility
+export type Patient = QueuePatient;
 
 export interface VitalSigns {
   bloodPressure: string;
@@ -41,89 +30,14 @@ export interface AttendanceRecord {
 }
 
 export const useAttendance = () => {
-  const [todayPatients, setTodayPatients] = useState<Patient[]>([]);
+  const { queue, updateStatus } = useQueue();
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Mock data - em um app real, isso viria de uma API
-  useEffect(() => {
-    const mockPatients: Patient[] = [
-      {
-        id: '1',
-        name: 'Maria Silva',
-        age: 45,
-        phone: '(11) 99999-1111',
-        email: 'maria@email.com',
-        address: 'Rua das Flores, 123',
-        healthPlan: 'Unimed',
-        appointmentTime: '09:00',
-        reason: 'Consulta de rotina',
-        status: 'waiting',
-        priority: 'normal'
-      },
-      {
-        id: '2',
-        name: 'João Santos',
-        age: 60,
-        phone: '(11) 99999-2222',
-        email: 'joao@email.com',
-        address: 'Av. Principal, 456',
-        healthPlan: 'Bradesco Saúde',
-        appointmentTime: '09:30',
-        reason: 'Dor no peito',
-        status: 'waiting',
-        priority: 'urgent',
-        assignedTo: 'current_doctor' // Exemplo: atribuído ao médico atual
-      },
-      {
-        id: '3',
-        name: 'Ana Costa',
-        age: 35,
-        phone: '(11) 99999-3333',
-        email: 'ana@email.com',
-        address: 'Rua Nova, 789',
-        healthPlan: 'SulAmérica',
-        appointmentTime: '10:00',
-        reason: 'Check-up anual',
-        status: 'waiting',
-        priority: 'normal'
-      },
-      {
-        id: '4',
-        name: 'Pedro Oliveira',
-        age: 28,
-        phone: '(11) 99999-4444',
-        email: 'pedro@email.com',
-        address: 'Rua da Paz, 101',
-        healthPlan: 'Amil',
-        appointmentTime: '10:30',
-        reason: 'Dor de cabeça constante',
-        status: 'waiting',
-        priority: 'normal',
-        assignedTo: 'other_doctor' // Exemplo: atribuído a outro médico
-      },
-      {
-        id: '5',
-        name: 'Carla Mendes',
-        age: 52,
-        phone: '(11) 99999-5555',
-        email: 'carla@email.com',
-        address: 'Av. Brasil, 234',
-        healthPlan: 'Porto Seguro',
-        appointmentTime: '11:00',
-        reason: 'Pressão alta',
-        status: 'waiting',
-        priority: 'urgent',
-        assignedTo: 'current_doctor'
-      }
-    ];
-
-    setTodayPatients(mockPatients);
-    setIsLoading(false);
-  }, []);
+  
+  // Filter patients for the current view (Attendance Page)
+  // In a real app, we might filter by the logged-in doctor here
+  const todayPatients = queue;
 
   const callPatient = (patientId: string) => {
-    // Simulação de chamar paciente (pode disparar som, notificação, etc)
     if ((window as any).showToast) {
       (window as any).showToast({
         type: 'info',
@@ -134,20 +48,14 @@ export const useAttendance = () => {
   };
 
   const startAttendance = (patient: Patient) => {
-    // Atualizar status do paciente para 'in-progress'
-    setTodayPatients(prev => 
-      prev.map(p => 
-        p.id === patient.id 
-          ? { ...p, status: 'in-progress' } 
-          : p
-      )
-    );
+    // Update patient status in the global queue
+    updateStatus(patient.id, 'in-progress');
 
-    // Criar um novo registro de atendimento
+    // Create a new attendance record
     const newRecord: AttendanceRecord = {
       id: `att_${Date.now()}`,
       patientId: patient.id,
-      doctorId: 'current_doctor', // Em um app real, pegar do contexto do usuário
+      doctorId: 'current_doctor', // In a real app, get from user context
       date: new Date().toISOString().split('T')[0],
       startTime: new Date().toTimeString().split(' ')[0],
       vitalSigns: {
@@ -158,7 +66,7 @@ export const useAttendance = () => {
         height: '',
         oxygenSaturation: ''
       },
-      symptoms: '',
+      symptoms: patient.symptoms || '',
       diagnosis: '',
       treatment: '',
       prescription: '',
@@ -174,7 +82,7 @@ export const useAttendance = () => {
     const record = attendanceRecords.find(r => r.id === recordId);
     if (!record) return;
 
-    // Atualizar o registro de atendimento
+    // Update the attendance record
     setAttendanceRecords(prev => 
       prev.map(r => 
         r.id === recordId 
@@ -188,14 +96,8 @@ export const useAttendance = () => {
       )
     );
 
-    // Atualizar status do paciente para 'completed'
-    setTodayPatients(prev => 
-      prev.map(p => 
-        p.id === record.patientId 
-          ? { ...p, status: 'completed' } 
-          : p
-      )
-    );
+    // Update patient status in the global queue
+    updateStatus(record.patientId, 'completed');
   };
 
   const updateAttendanceRecord = (recordId: string, updates: Partial<AttendanceRecord>) => {
@@ -238,7 +140,7 @@ export const useAttendance = () => {
   return {
     todayPatients,
     attendanceRecords,
-    isLoading,
+    isLoading: false, // Queue is managed by context, so no loading state here for now
     startAttendance,
     completeAttendance,
     updateAttendanceRecord,

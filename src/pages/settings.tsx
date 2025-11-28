@@ -8,7 +8,7 @@ export default function SettingsPage() {
   const { darkMode, toggleDarkMode } = useDarkMode();
 
   return (
-    <ProtectedRoute allowedRoles={["admin"]}>
+    <ProtectedRoute allowedRoles={["admin", "doctor", "nurse", "receptionist"]}>
       <MainLayout title="Configurações da Clínica">
         <SettingsView darkMode={darkMode} setDarkMode={toggleDarkMode} />
       </MainLayout>

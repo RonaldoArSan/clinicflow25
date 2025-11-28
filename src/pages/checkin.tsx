@@ -15,11 +15,14 @@ const PatientSearchModal = dynamic(
   { ssr: false }
 );
 
+import { useQueue } from "../context/QueueContext";
+
 export default function CheckinPage() {
   const { darkMode } = useDarkMode();
   const { appointments } = useAppointments();
   const { patients } = usePatients();
   const [showPatientSearchModal, setShowPatientSearchModal] = useState(false);
+  const { addToQueue } = useQueue();
 
   return (
     <ProtectedRoute allowedRoles={["receptionist", "admin"]}>
@@ -40,7 +43,39 @@ export default function CheckinPage() {
           appointments={appointments}
           patients={patients}
           onCheckIn={(patientId, appointmentId) => {
-            console.log("Check-in realizado:", { patientId, appointmentId });
+            // Convert IDs to numbers if they are coming as strings from the UI but stored as numbers in mock data
+            // Or convert mock data IDs to strings for comparison
+            // Assuming mock data uses numbers for IDs based on previous errors
+            const pId = Number(patientId);
+            const aId = appointmentId ? Number(appointmentId) : undefined;
+
+            const patient = patients.find((p) => p.id === pId);
+            const appointment = appointments.find((a) => a.id === aId);
+
+            if (patient) {
+              addToQueue({
+                name: patient.name,
+                age: 30, // Mock age if not in patient data
+                gender: "male", // Mock gender
+                priority: "normal",
+                type: appointment?.type || "Consulta",
+                reason: appointment?.symptoms || "Consulta",
+                healthPlan: patient.healthPlan || "Particular",
+                appointmentTime:
+                  appointment?.time ||
+                  new Date().toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                symptoms: appointment?.symptoms,
+              });
+
+              // Optional: Show success toast
+              console.log("Check-in realizado e adicionado à fila:", {
+                patientId,
+                appointmentId,
+              });
+            }
           }}
         />
 

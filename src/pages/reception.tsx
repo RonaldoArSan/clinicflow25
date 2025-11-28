@@ -2,10 +2,11 @@ import React from "react";
 import dynamic from "next/dynamic";
 import MainLayout from "../components/Layout/MainLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { useReceptionData } from "../hooks/useReceptionData";
 import { useAppointments, usePatients } from "../hooks/useData";
 import { useDarkMode } from "../hooks/useDarkMode";
 import { useRouter } from "next/router";
+
+import { useQueue } from "../context/QueueContext";
 
 const ReceptionDashboard = dynamic(
   () => import("../components/reception/ReceptionDashboard"),
@@ -14,7 +15,8 @@ const ReceptionDashboard = dynamic(
 
 export default function ReceptionPage() {
   const { darkMode } = useDarkMode();
-  const { queue } = useReceptionData();
+  // const { queue } = useReceptionData(); // Remove old hook usage
+  const { queue } = useQueue(); // Use global queue
   const { appointments } = useAppointments();
   const { patients } = usePatients();
   const router = useRouter();

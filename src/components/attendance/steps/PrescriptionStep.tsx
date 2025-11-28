@@ -1,5 +1,6 @@
-import React from "react";
-import { AlertCircle } from "lucide-react";
+import React, { useState } from "react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import DocumentHeader from "../../documents/DocumentHeader";
 
 interface PrescriptionStepProps {
   prescription: string;
@@ -12,6 +13,8 @@ export const PrescriptionStep: React.FC<PrescriptionStepProps> = ({
   setPrescription,
   darkMode,
 }) => {
+  const [showPreview, setShowPreview] = useState(false);
+
   return (
     <div
       className={`
@@ -19,13 +22,38 @@ export const PrescriptionStep: React.FC<PrescriptionStepProps> = ({
       border rounded-lg p-6
     `}
     >
-      <h3
-        className={`text-lg font-semibold mb-4 ${
-          darkMode ? "text-gray-100" : "text-gray-900"
-        }`}
-      >
-        Prescrição Médica
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3
+          className={`text-lg font-semibold ${
+            darkMode ? "text-gray-100" : "text-gray-900"
+          }`}
+        >
+          Prescrição Médica
+        </h3>
+        <button
+          onClick={() => setShowPreview(!showPreview)}
+          className={`
+            flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm transition-colors
+            ${
+              darkMode
+                ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+            }
+          `}
+        >
+          {showPreview ? (
+            <>
+              <EyeOff className="w-4 h-4" />
+              <span>Ocultar Prévia</span>
+            </>
+          ) : (
+            <>
+              <Eye className="w-4 h-4" />
+              <span>Visualizar Impressão</span>
+            </>
+          )}
+        </button>
+      </div>
 
       <div className="space-y-4">
         <div>
@@ -51,6 +79,33 @@ export const PrescriptionStep: React.FC<PrescriptionStepProps> = ({
             `}
           />
         </div>
+
+        {showPreview && (
+          <div className="mt-6 border rounded-lg p-8 bg-white text-gray-900 shadow-sm">
+            <div className="text-center mb-4 text-xs text-gray-400 uppercase tracking-wider">
+              Prévia do Documento
+            </div>
+            <div className="border border-gray-200 p-8 min-h-[400px] relative">
+              <DocumentHeader />
+
+              <div className="mt-8">
+                <h2 className="text-center text-xl font-bold mb-8 uppercase border-b pb-2">
+                  Receituário Médico
+                </h2>
+
+                <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                  {prescription || "Nenhum medicamento prescrito."}
+                </div>
+              </div>
+
+              <div className="absolute bottom-8 left-8 right-8 text-center border-t pt-4">
+                <p className="text-sm text-gray-600">
+                  Assinatura e Carimbo do Médico
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div
           className={`

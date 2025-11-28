@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Patient } from "../types";
+import { useCep } from "../hooks/useCep";
 
 interface NewPatientFormProps {
   darkMode: boolean;
@@ -24,7 +25,11 @@ export default function NewPatientForm({
     email: "",
     zipCode: "",
     city: "",
-    address: "",
+    state: "",
+    street: "",
+    number: "",
+    complement: "",
+    neighborhood: "",
     bloodType: "",
     weight: "",
     height: "",
@@ -45,6 +50,31 @@ export default function NewPatientForm({
     marketingAccepted: false,
   });
 
+  // ... inside component ...
+
+  const { fetchCep, loading: loadingCep } = useCep();
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCep = e.target.value;
+
+    // Update form data immediately
+    setFormData((prev) => ({ ...prev, zipCode: newCep }));
+
+    // If CEP is valid (8 digits), fetch address
+    if (newCep.replace(/\D/g, "").length === 8) {
+      const addressData = await fetchCep(newCep);
+      if (addressData) {
+        setFormData((prev) => ({
+          ...prev,
+          street: addressData.logradouro,
+          neighborhood: addressData.bairro,
+          city: addressData.localidade,
+          state: addressData.uf,
+        }));
+      }
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -52,6 +82,11 @@ export default function NewPatientForm({
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
+
+    if (name === "zipCode") {
+      handleCepChange(e as React.ChangeEvent<HTMLInputElement>);
+      return;
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -67,7 +102,11 @@ export default function NewPatientForm({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      address: formData.address,
+      address: `${formData.street}, ${formData.number}${
+        formData.complement ? ` - ${formData.complement}` : ""
+      } - ${formData.neighborhood}, ${formData.city}/${formData.state} - CEP: ${
+        formData.zipCode
+      }`,
       birthDate: formData.birthDate,
       cpf: formData.cpf,
       bloodType: formData.bloodType,
@@ -244,6 +283,11 @@ export default function NewPatientForm({
               className={inputClass}
               placeholder="00000-000"
             />
+            {loadingCep && (
+              <span className="text-xs text-blue-500 mt-1">
+                Buscando CEP...
+              </span>
+            )}
           </div>
           <div>
             <label className={labelClass}>Cidade *</label>
@@ -257,16 +301,64 @@ export default function NewPatientForm({
               placeholder="Digite a cidade"
             />
           </div>
-          <div className="md:col-span-2">
-            <label className={labelClass}>Endereço Completo *</label>
+          <div>
+            <label className={labelClass}>Estado *</label>
             <input
               type="text"
-              name="address"
+              name="state"
               required
-              value={formData.address}
+              value={formData.state}
               onChange={handleChange}
               className={inputClass}
-              placeholder="Rua, número, complemento, bairro"
+              placeholder="UF"
+              maxLength={2}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className={labelClass}>Logradouro *</label>
+            <input
+              type="text"
+              name="street"
+              required
+              value={formData.street}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="Rua, Avenida, etc."
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Número *</label>
+            <input
+              type="text"
+              name="number"
+              required
+              value={formData.number}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="123"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Complemento</label>
+            <input
+              type="text"
+              name="complement"
+              value={formData.complement}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="Apto 101, Bloco B"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className={labelClass}>Bairro *</label>
+            <input
+              type="text"
+              name="neighborhood"
+              required
+              value={formData.neighborhood}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="Bairro"
             />
           </div>
         </div>
@@ -421,7 +513,9 @@ export default function NewPatientForm({
 
       {/* Seção 5: Contato de Emergência */}
       <div className={sectionClass}>
-        <h3 className={sectionTitleClass}>🚨 Contato de Emergência</h3>
+        <h3 className={sectionTitleClass}>
+          🚨 Em caso de urgência ligar para:
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nome Completo *</label>
